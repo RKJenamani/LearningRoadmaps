@@ -134,6 +134,7 @@ def object_around_table(task_id, robot, env, G):
         binary_vec = check_for_collisions(G, robot, env)
 
         cond = ""
+        
         # TODO: create occupancy grid ###################
         # cond = (table_pose.ravel()).astype(str)
         # cond = ",".join(condn)
@@ -159,7 +160,10 @@ def object_around_table(task_id, robot, env, G):
             elif (check==2 and len(goal)<50):
                 goal.append(random_node)
 
-        write_one_dir(task_id, env_no, start, goal, cond, binary_vec)        
+        if(len(start) == 50 and len(goal) == 50):        
+            write_one_dir(task_id, env_no, start, goal, cond, binary_vec)
+        else:
+            print("no of start or goal posiitons is under limit")            
 
 
 def generate_data(task_id, robot, env, G):

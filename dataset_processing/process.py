@@ -1,66 +1,68 @@
-import herbpy
 import os
-import numpy
-import math
-import openravepy
 import argparse
-import sys
-from prpy import serialization
-import json
 import networkx as nx
-from itertools import islice                
+import math        
+import numpy as np
+from itertools import islice     
 
-#project src and goal in graph
-def find_closest_node(SRC, GOAL):
-    SRC_C = state_to_numpy(G.node['110']['state'])
-    GOAL_C = SRC_C
-    SRC_CN = GOAL_CN = '110'
-    for node in G.nodes():
-        state = G.node[node]['state']
-        config = state_to_numpy(state)
-        if(numpy.sum((SRC - config)**2)< numpy.sum((SRC - SRC_C))**2):
-            SRC_C = config
-            SRC_CN = node
-        if(numpy.sum((GOAL - config)**2)< numpy.sum((GOAL - GOAL_C)**2)):
-            GOAL_C = config   
-            GOAL_CN = node
-    return SRC_CN, GOAL_CN        
+k = 10
 
 #return k shortest path
-def k_shortest_paths(G, source, target, k, weight=None):
-        return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), k))
+def k_shortest_paths(G, source, target, weight=None):
+    global k
+    return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), k))
 
-#save the processed data
-def save_data(start, goal, feature_vec, binary_vec):
-    assert len(binary_vec)==K,"No of binary vectors doesn't match"
-    print("size of vector = ",binary_vec.shape)
-    binary_vec = binary_vec.ravel()
-    data = np.concatenate((start, goal, feature_vec, binary_vec))
-    np.savetxt("processed_data.txt", data, delimiter = ",")
+def remove_invalid_edges(G1, binary_vec):
+    to_remove = []
+    
+    for i, edge in enumerate(G1.edges()):
+        if(not binary_vec[i]):
+            u,v = edge
+            to_remove.append((u, v))
 
+    for r in to_remove:
+        G1.remove_edge(r[0], r[1])        
+    return G1        
+
+def process_it(G, directory):
+    G1 = G.copy()
+    start = np.loadtxt(directory+"/start_node.txt")
+    goal = np.loadtxt(directory+"/goal_node.txt")
+    binary_vec = np.loadtxt(directory+"/binary_vec.txt")
+
+    # G1 = remove_invalid_edges(G1, binary_vec)
+
+    for i in range(50):
+        src = str(int(start[i]))
+        gl = str(int(goal[i]))
+        paths = []
+        try:
+            paths = k_shortest_paths(G1, src, gl)
+            print("no(paths) = ", len(paths))        
+        except Exception as e:
+            print(e)    
+
+def list_all_dir(data_dir):
+    task_dirs = os.listdir(data_dir)
+
+    list_dir = []
+    for task_dir in task_dirs:
+        env_dirs = os.listdir(data_dir+"/"+task_dir)
+        for env_dir in env_dirs:
+            list_dir.append(data_dir +"/"+ task_dir +"/"+ env_dir)
+    return list_dir        
 
 if __name__ == '__main__':
-    global SRC, GOAL
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--graphfile',type=str,required=True)
+    parser.add_argument('--datadir',type=str,required=True)
     args = parser.parse_args()
 
-    env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
-    robot.right_arm.SetActive()
-    # Load table from pr_ordata
-    table_file = os.path.join(objects_path,'objects/table.kinbody.xml')
-    table = env.ReadKinBodyXMLFile(table_file)
-    env.AddKinBody(table)
-
     G = nx.read_graphml(args.graphfile)
-    G = check_for_collisions(G)
+    data_dir = args.datadir
 
-    set_source_and_goal(SRC, GOAL)
-    SRC, GOAL = find_closest_node(SRC, GOAL)
-    # SRC, GOAL = '2398', '8467'
-    print("SRC = ",SRC, "GOAL = ", GOAL)
+    directories = list_all_dir(data_dir)
+    print(directories)
 
-    paths = k_shortest_paths(G, SRC, GOAL, K)
-    print("paths = ",paths)
-
-    binary_vec = convert_to_vectors(paths, G)
+    for directory in directories:
+        process_it(G, directory)
