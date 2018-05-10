@@ -3,7 +3,7 @@ import argparse
 import networkx as nx
 import math        
 import numpy as np
-from itertools import islice     
+from itertools import islice, chain     
 
 k = 10
 
@@ -24,6 +24,14 @@ def remove_invalid_edges(G1, binary_vec):
         G1.remove_edge(r[0], r[1])        
     return G1        
 
+def write_to_file(directory, all_paths):
+    print(all_paths)
+    for i in range(len(all_paths)):
+        print("\n\n")
+        print(i,all_paths[i])
+    with open(directory + "/path_nodes.txt", 'w') as file:
+        file.writelines(','.join(str(j) for j in i) + '\n' for i in all_paths)
+
 def process_it(G, directory):
     G1 = G.copy()
     start = np.loadtxt(directory+"/start_node.txt")
@@ -31,16 +39,24 @@ def process_it(G, directory):
     binary_vec = np.loadtxt(directory+"/binary_vec.txt")
 
     # G1 = remove_invalid_edges(G1, binary_vec)
-
+    all_paths = []
     for i in range(50):
         src = str(int(start[i]))
         gl = str(int(goal[i]))
         paths = []
         try:
             paths = k_shortest_paths(G1, src, gl)
-            print("no(paths) = ", len(paths))        
+            paths = list(chain.from_iterable(paths))
+            all_paths.append(paths)
         except Exception as e:
-            print(e)    
+            print(e)
+            all_paths.append(['-1'])
+            
+    # print(all_paths) 
+    # print("\n\n\n\n") 
+    print(len(all_paths))      
+    write_to_file(directory, all_paths)  
+    print("written to directory = ",directory)         
 
 def list_all_dir(data_dir):
     task_dirs = os.listdir(data_dir)
