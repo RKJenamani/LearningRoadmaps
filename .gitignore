@@ -1,3 +1,5 @@
 herbpy_planning_dataset_generation/data/
 dataset_processing/graphs/
 dataset_processing/data/
+cvae_learner/data/
+cvae_learner/graphs/
