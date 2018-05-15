@@ -38,7 +38,7 @@ def process_it(G, directory):
     goal = np.loadtxt(directory+"/goal_node.txt")
     binary_vec = np.loadtxt(directory+"/binary_vec.txt")
 
-    # G1 = remove_invalid_edges(G1, binary_vec)
+    G1 = remove_invalid_edges(G1, binary_vec)
     all_paths = []
     for i in range(50):
         src = str(int(start[i]))
