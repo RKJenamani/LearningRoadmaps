@@ -2,9 +2,24 @@ import networkx as nx
 import math        
 import numpy as np
 from math import sqrt
+import herbpy
+import os
+from prpy import serialization
+import json
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
-def connect_knn(G, k):
-    pass
+EDGE_DISCRETIZATION = 7
+
+from catkin.find_in_workspaces import find_in_workspaces
+
+package_name = 'pr_ordata'
+directory = 'data'
+objects_path = find_in_workspaces(
+    search_dirs=['share'],
+    project=package_name,
+    path=directory,
+    first_match_only=True)
 
 def generate_graph(nodes): #nodes -> key, value pair, value => string with joint angles separated by ' '
     G = nx.Graph()
@@ -26,6 +41,21 @@ def state_to_numpy(state):
     val_list = [float(s) for s in strlist]
     return np.array(val_list)           
 
+def edge_to_configs(state1, state2):
+    config1 = state_to_numpy(state1)
+    config2 = state_to_numpy(state2)
+
+    diff = config2 - config1
+    step = diff/EDGE_DISCRETIZATION
+
+    to_check = list()
+
+    for i in xrange(EDGE_DISCRETIZATION - 1):
+        conf = config1 + step*(i+1)
+        to_check.append(conf)
+
+    return to_check
+    
 def create_weighted_graph(G):
     for i, edge in enumerate(G.edges()):
         u,v = edge
@@ -34,6 +64,48 @@ def create_weighted_graph(G):
         G[u][v]['weight'] = calc_weight(state1, state2)
     nx.write_graphml(G, "graphs/weighted_graph.graphml")
     return G
+
+def check_for_collision(G, env, robot, u, v):
+    state1 = G.node[u]['state']
+    state2 = G.node[v]['state']
+    configs_to_check = edge_to_configs(state1,state2)
+
+    edge_free = 1
+
+    for cc in configs_to_check:
+        robot.SetActiveDOFValues(cc)
+
+        if env.CheckCollision(robot) == True:
+            edge_free = 0
+            break
+    return edge_free        
+
+def load_table(table_pos, env): # 4X4 numpy array
+    table_file = os.path.join(objects_path,'objects/table.kinbody.xml')
+    table = env.ReadKinBodyXMLFile(table_file)
+    env.AddKinBody(table)
+    table.SetTransform(table_pose)
+
+def connect_knn(G, K):
+    for node in G.nodes():
+        state = G.node[node]['state']
+        conf = state_to_numpy(state)
+        G1 = G.copy()
+
+        for k in range(K):
+            w = 1000000
+            sn = None
+            for node1 in G1.nodes():
+                state1 = G1.node[node1]['state']
+                conf1  = state_to_numpy(state1)
+                if(calc_weight(conf, conf1) < w):
+                    w = calc_weight(conf, conf1)
+                    sn = node1
+
+            if(check_for_collision(node, sn)==1):
+                G.add_edge(node, sn)
+            G1.remove_node(node1)
+    return G        
 
 def load_output_samples(file_addr):
     nodes = {}
@@ -48,8 +120,17 @@ def load_output_samples(file_addr):
     return nodes        
 
 #take ee_transform and plot it
-def plot_end_effector_positions(nodes):
-    pass
+def plot_end_effector_positions(eepositions):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    x = []
+    y = []
+    z = []
+    for key, value in eepositions:
+        x = eepositions[0]
+        y = eepositions[1]
+        z = eepositions[2]
+    Axes3D.plot(x, y, z)    
 
 def main():
     K = 5
@@ -59,6 +140,7 @@ def main():
     # G = create_weighted_graph(G)
     G = connect_knn(G, K)
     path_length = get_shortest_path_length(G, start_conf, goal_conf)
+
 
 if __name__ == '__main__':
             main()      
