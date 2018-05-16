@@ -99,6 +99,7 @@ def write_one_dir(task_id, env_no,start_node, goal_node, condition_vectors, bina
     numpy.savetxt(dir_path+"/goal_node.txt", goal_node, delimiter=" ", fmt="%s")
     numpy.savetxt(dir_path+"/binary_vec.txt", binary_vec, delimiter=" ", fmt="%s")
     numpy.savetxt(dir_path+"/conditions.txt", condition_vectors, delimiter=" ", fmt="%s") #here only table_pose
+
 def object_around_table(task_id, robot, env, G):
     # Load table from pr_ordata
     table_file = os.path.join(objects_path,'objects/table.kinbody.xml')
@@ -135,10 +136,6 @@ def object_around_table(task_id, robot, env, G):
 
         cond = ""
         cond = table_pose.ravel()
-        # TODO: create occupancy grid ###################
-        # cond = (table_pose.ravel()).astype(str)
-        # cond = ",".join(condn)
-        #################################################
 
         start = []
         goal  = []
@@ -164,7 +161,6 @@ def object_around_table(task_id, robot, env, G):
             write_one_dir(task_id, env_no, start, goal, cond, binary_vec)
         else:
             print("no of start or goal posiitons is under limit")            
-
 
 def generate_data(task_id, robot, env, G):
     if(task_id=="T1"):

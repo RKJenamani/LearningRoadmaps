@@ -3,3 +3,5 @@ dataset_processing/graphs/
 dataset_processing/data/
 cvae_learner/data/
 cvae_learner/graphs/
+cvae_evaluator/data/
+cvae_evaluator/graphs/
