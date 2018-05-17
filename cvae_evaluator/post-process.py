@@ -2,7 +2,6 @@ import networkx as nx
 import math        
 import numpy as np
 from math import sqrt
-import herbpy
 import os
 from prpy import serialization
 import json
@@ -13,6 +12,8 @@ EDGE_DISCRETIZATION = 7
 
 from catkin.find_in_workspaces import find_in_workspaces
 
+###################### for herbpy ##########################
+import herbpy
 package_name = 'pr_ordata'
 directory = 'data'
 objects_path = find_in_workspaces(
@@ -20,6 +21,8 @@ objects_path = find_in_workspaces(
     project=package_name,
     path=directory,
     first_match_only=True)
+
+############################################################
 
 def state_to_numpy(state):
     strlist = state.split()
@@ -169,8 +172,10 @@ def plot_end_effector_positions(eepositions):
 def main():
     K = 5
     file_addr = "output_sample_node_e9.txt"
+
     env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
     robot.right_arm.SetActive()
+    
     nodes = load_output_samples(file_addr)
     G = generate_graph(nodes)
     G1 = nx.read_graphml("graphs/herb_halton_1.graphml")
