@@ -21,6 +21,29 @@ objects_path = find_in_workspaces(
     path=directory,
     first_match_only=True)
 
+def state_to_numpy(state):
+    strlist = state.split()
+    val_list = [float(s) for s in strlist]
+    return np.array(val_list)           
+
+def get_actual_samples(G, directory):
+    nodes = {}
+    i = 0
+    with open(directory + "/path_nodes.txt", 'r') as file:
+        lines  = file.readlines()
+        for line in lines:
+            line = line.strip('\n')
+            print(line)
+            print("\n\n")
+            if(not line == '-1'):
+                path_nodes = str(line).split(",")
+                # print(path_nodes)
+                for path_node in path_nodes:
+                    node_conf = str(G.node[path_node]['state'])
+                    nodes[str(i)] = node_conf
+                    i += 1
+    return nodes            
+
 def generate_graph(nodes): #nodes -> key, value pair, value => string with joint angles separated by ' '
     G = nx.Graph()
     for key in nodes:
@@ -35,11 +58,6 @@ def get_shortest_path_length(G, start, goal):
 
 def calc_weight(s, g):
     return sqrt(np.sum((s-g)**2))
-
-def state_to_numpy(state):
-    strlist = state.split()
-    val_list = [float(s) for s in strlist]
-    return np.array(val_list)           
 
 def edge_to_configs(state1, state2):
     config1 = state_to_numpy(state1)
@@ -117,7 +135,21 @@ def load_output_samples(file_addr):
             nodes[str(i)] = line
             i += 1
     print(nodes)
-    return nodes        
+    return nodes   
+
+def get_eepositions(env, robot, nodes):
+    eepositions = {}
+    for key in nodes:
+        value = nodes[key]
+        conf = state_to_numpy(value)
+        robot.SetActiveDOFValues(conf)
+
+        ee_trans = robot.right_arm.GetEndEffectorTransform()
+        trans = ee_trans[0:3,3]
+        eepos = trans.tolist()
+
+        eepositions[key] = eepos
+    return eepositions    
 
 #take ee_transform and plot it
 def plot_end_effector_positions(eepositions):
@@ -126,20 +158,32 @@ def plot_end_effector_positions(eepositions):
     x = []
     y = []
     z = []
-    for key, value in eepositions:
-        x = eepositions[0]
-        y = eepositions[1]
-        z = eepositions[2]
-    Axes3D.plot(x, y, z)    
+    for key in eepositions:
+        value = eepositions[key]
+        x.append(value[0])
+        y.append(value[1])
+        z.append(value[2])
+    ax.scatter(x, y, z) 
+    plt.show()   
 
 def main():
     K = 5
     file_addr = "output_sample_node_e9.txt"
+    env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
+    robot.right_arm.SetActive()
     nodes = load_output_samples(file_addr)
     G = generate_graph(nodes)
+    G1 = nx.read_graphml("graphs/herb_halton_1.graphml")
+    eepositions = get_eepositions(env, robot, nodes)
+    # plot_end_effector_positions(eepositions)
+
+    nodes_1 = get_actual_samples(G1, "data/T1/9") 
+    eepositions_1 = get_eepositions(env, robot, nodes_1)
+    plot_end_effector_positions(eepositions_1)
     # G = create_weighted_graph(G)
-    G = connect_knn(G, K)
-    path_length = get_shortest_path_length(G, start_conf, goal_conf)
+    # G = connect_knn(G, K)
+    # path_length = get_shortest_path_length(G, start_conf, goal_conf)
+
 
 
 if __name__ == '__main__':
