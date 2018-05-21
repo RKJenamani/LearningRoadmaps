@@ -43,10 +43,11 @@ else:
     print objects_path # for me this is '/home/USERNAME/catkin_workspaces/herb_ws/src/pr-ordata/data/objects'
     objects_path = objects_path[0]
 
+def get_table_pos(cond_file_addr, table_pose):
+      
+
 def wait_for_user():
   x = raw_input("Press Enter")
-
-
 
 if __name__=='__main__':
 

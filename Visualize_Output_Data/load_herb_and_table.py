@@ -51,7 +51,7 @@ if __name__=='__main__':
     table = env.ReadKinBodyXMLFile(table_file)
     env.AddKinBody(table)
 
-    xpos, ypos = 1, 0
+    xpos, ypos = 1.18872327738, -0.724415406951
     table_pose[0,3] = xpos
     table_pose[1,3] = ypos
 

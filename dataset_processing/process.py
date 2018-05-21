@@ -5,7 +5,7 @@ import math
 import numpy as np
 from itertools import islice, chain     
 
-k = 10
+k = 1
 
 #return k shortest path
 def k_shortest_paths(G, source, target, weight=None):

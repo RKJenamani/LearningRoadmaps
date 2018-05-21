@@ -5,6 +5,8 @@ import rospy
 import math
 import numpy as np
 import helper
+import networkx as nx
+import argparse
 
 def load_marker(eepositions, markerArray):
 
@@ -35,9 +37,9 @@ def append_start_goal(eepos_start, eepos_goal, markerArray):
     marker.header.frame_id = "/map"
     marker.type = marker.SPHERE
     marker.action = marker.ADD
-    marker.scale.x = 0.05
-    marker.scale.y = 0.05
-    marker.scale.z = 0.05
+    marker.scale.x = 0.1
+    marker.scale.y = 0.1
+    marker.scale.z = 0.1
     marker.color.a = 1.0
     marker.color.r = 1.0
     marker.color.g = 0.0
@@ -52,9 +54,9 @@ def append_start_goal(eepos_start, eepos_goal, markerArray):
     marker.header.frame_id = "/map"
     marker.type = marker.SPHERE
     marker.action = marker.ADD
-    marker.scale.x = 0.05
-    marker.scale.y = 0.05
-    marker.scale.z = 0.05
+    marker.scale.x = 0.1
+    marker.scale.y = 0.1
+    marker.scale.z = 0.1
     marker.color.a = 1.0
     marker.color.r = 0.0
     marker.color.g = 1.0
@@ -68,6 +70,12 @@ def append_start_goal(eepos_start, eepos_goal, markerArray):
     return markerArray  
 
 def main():
+    parser = argparse.ArgumentParser(description='Generate environments')
+    parser.add_argument('--graphfile',type=str,required=True)
+    args = parser.parse_args()
+    
+    G = nx.read_graphml(args.graphfile)
+
     count = 0
     topic = 'path_node_pos'
     publisher = rospy.Publisher(topic, MarkerArray)
@@ -76,15 +84,15 @@ def main():
 
     markerArray = MarkerArray()
 
-    p_file_addr = "data_vis/path_node_no.txt"
-    eepos_file_addr = "data_vis/eePosns_enum_nodes.txt"
-    s_node_no_file = "data_vis/start_node_no.txt"
-    g_node_no_file = "data_vis/goal_node_no.txt"
+    p_file_addr = "temp_data/path_nodes.txt"
+    eepos_file_addr = "temp_data/eePosns_enum_nodes.txt"
+    s_node_no_file = "temp_data/start_node.txt"
+    g_node_no_file = "temp_data/goal_node.txt"
     pp_no = 1
 
-    eepositions = helper.get_eepositions(eepos_file_addr, p_file_addr, pp_no)
-    eepos_start = helper.get_eepositions(eepos_file_addr, s_node_no_file, pp_no)[0]
-    eepos_goal  = helper.get_eepositions(eepos_file_addr, g_node_no_file, pp_no)[0]
+    eepositions = helper.get_eepositions(G, eepos_file_addr, p_file_addr, pp_no)
+    eepos_start = helper.get_eepositions(G, eepos_file_addr, s_node_no_file, pp_no)[0]
+    eepos_goal  = helper.get_eepositions(G, eepos_file_addr, g_node_no_file, pp_no)[0]
 
     
     while not rospy.is_shutdown():
@@ -92,6 +100,7 @@ def main():
         eepositions, markerArray = load_marker(eepositions, markerArray)
         markerArray = append_start_goal(eepos_start, eepos_goal, markerArray)
         print("len(eepositions) = ",len(eepositions))
+        print("eepos_start = ", eepos_start)
         id = 0
         for m in markerArray.markers:
            m.id = id
