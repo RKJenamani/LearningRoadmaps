@@ -106,9 +106,8 @@ if __name__=='__main__':
     table.SetTransform(table_pose)
 
     path_nodes_no_addr = "temp_data/path_nodes.txt"
-    DOF_file_addr = "temp_data/DOF_Values_enum_nodes.txt"
 
-    path_conf_values = helper.get_DOF_Values(G, DOF_file_addr, path_nodes_no_addr, pp_no) 
+    path_conf_values = helper.get_DOF_Values(G, path_nodes_no_addr, pp_no) 
     # path_eePos_values = helper.get_DOF_Values()
 
     print("len(path_conf_values) = ", len(path_conf_values))
