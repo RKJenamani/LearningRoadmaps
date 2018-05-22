@@ -35,7 +35,7 @@ else:
     print objects_path # for me this is '/home/USERNAME/catkin_workspaces/herb_ws/src/pr-ordata/data/objects'
     objects_path = objects_path[0]
 
-def load_marker(eepositions, markerArray):
+def load_marker(eepositions, markerArray, c = [0.0, 0.0, 1.0]):
 
     i = 0
     for e in eepositions:
@@ -47,9 +47,9 @@ def load_marker(eepositions, markerArray):
             marker.scale.y = 0.05
             marker.scale.z = 0.05
             marker.color.a = 1.0
-            marker.color.r = 0.0
-            marker.color.g = 0.0
-            marker.color.b = 1.0
+            marker.color.r = c[0]
+            marker.color.g = c[1]
+            marker.color.b = c[2]
             marker.pose.orientation.w = 1.0
             marker.pose.position.x = e[0]
             marker.pose.position.y = e[1] 
@@ -116,12 +116,52 @@ def get_eepositions_from_samples(env, robot, p_file_addr):
             trans = ee_trans[0:3,3]
             eepos = trans.tolist()
             eepositions.append(eepos)
-    return eepositions        
+    return eepositions  
+
+def get_expected_node_nos(path_node_file_addr):
+    all_path_nodes = []
+    with open(path_node_file_addr, 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            line = line.strip('\n')
+            if(not line=='-1'):
+                nodes = line.split(",")
+                for node in nodes:
+                    all_path_nodes.append(node)
+    return all_path_nodes
+    
+def get_ee_positions_from_node_no(G, env, robot, all_path_nodes):
+    eepositions = []
+    for node in all_path_nodes:
+        state = G.node[node]['state']
+        strlist = state.split()
+        val_list = [float(s) for s in strlist]
+        config = np.array(val_list)
+        robot.SetActiveDOFValues(config)
+        ee_trans = robot.right_arm.GetEndEffectorTransform()
+        trans = ee_trans[0:3,3]
+        eepos = trans.tolist()
+        eepositions.append(eepos)
+    return eepositions    
+
+def get_markers_expected_samples(G, env, robot, path_node_file_addr):
+    all_path_nodes = get_expected_node_nos(path_node_file_addr)
+    eepositions = get_ee_positions_from_node_no(G, env, robot, all_path_nodes)
+    markerArray = MarkerArray()
+    print("len(eepositions) m1 = ", len(eepositions))
+    print(eepositions)
+    raw_input("all Ok!!")
+    markerArray1 = MarkerArray()
+    eepositions, markerArray1 = load_marker(eepositions, markerArray1, c = [0.0, 1.0, 0.0])
+    return markerArray1
 
 def main():
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--condnsfile',type=str,required=True)
+    parser.add_argument('--graphfile',type=str,required=True)
+
     args = parser.parse_args()
+    G = nx.read_graphml(args.graphfile)
     
     env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
     robot.right_arm.SetActive()
@@ -141,6 +181,9 @@ def main():
     topic = 'output_node_pos'
     publisher = rospy.Publisher(topic, MarkerArray)
 
+    topic = 'expected_node_pos'
+    publisher1 = rospy.Publisher(topic, MarkerArray)
+
     rospy.init_node('output_node_pos')
 
     markerArray = MarkerArray()
@@ -149,6 +192,9 @@ def main():
 
     eepositions = get_eepositions_from_samples(env, robot, p_file_addr)
 
+    path_node_file_addr = "output_data/expected_path_nodes.txt"
+    
+    markerArray1 = get_markers_expected_samples(G, env, robot, path_node_file_addr)
     
     while not rospy.is_shutdown():
         markerArray = MarkerArray()
@@ -161,6 +207,11 @@ def main():
         # Publish the MarkerArray
         publisher.publish(markerArray)
 
+        for m in markerArray1.markers:
+           m.id = id
+           id += 1
+        publisher1.publish(markerArray1)
+        # print("len(markerArray1) = ", len(markerArray1))
         count += 1
 
         rospy.sleep(0.1)

@@ -189,7 +189,5 @@ def main():
     # G = connect_knn(G, K)
     # path_length = get_shortest_path_length(G, start_conf, goal_conf)
 
-
-
 if __name__ == '__main__':
             main()      
