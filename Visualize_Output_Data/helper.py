@@ -1,6 +1,11 @@
 import numpy as np
 import networkx as nx
 
+def state_to_numpy(state):
+    strlist = state.split()
+    val_list = [float(s) for s in strlist]
+    return np.array(val_list) 
+
 def get_eepositions(G, eePos_file_addr,node_no_file_addr, pp_no):
     eepositions = {}
     array = []
@@ -18,14 +23,18 @@ def get_eepositions(G, eePos_file_addr,node_no_file_addr, pp_no):
         for line in lines:
             node_nos = line.strip('\n')
             path_nodes_all.append(node_nos.split(","))
-    path_nodes = path_nodes_all[pp_no]
+
+    if(pp_no == None):
+        path_nodes = list(np.ravel(np.array(path_nodes_all)))
+    else:            
+        path_nodes = path_nodes_all[pp_no]
     for node in path_nodes:
-        file_node = str(list(G.nodes()).index(node))
-        array.append(eepositions[file_node])        
+        state = G.node[node]['eePos']
+        array.append(state_to_numpy(state))        
 
     return array
 
-def get_DOF_Values(DOF_Values_file_addr,node_no_file_addr, pp_no):
+def get_DOF_Values(G, DOF_Values_file_addr,node_no_file_addr, pp_no):
     DOF_Values = {}
     array = []
     i = 0
@@ -43,7 +52,9 @@ def get_DOF_Values(DOF_Values_file_addr,node_no_file_addr, pp_no):
             node_nos = line.strip('\n')
             path_nodes_all.append(node_nos.split(","))
     path_nodes = path_nodes_all[pp_no]
+    print("path_nodes = ",path_nodes)
     for node in path_nodes:
-        array.append(DOF_Values[node])
+        state = G.node[node]['state']
+        array.append(state_to_numpy(state))
 
     return array    

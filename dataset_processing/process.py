@@ -15,19 +15,26 @@ def k_shortest_paths(G, source, target, weight=None):
 def remove_invalid_edges(G1, binary_vec):
     to_remove = []
     
-    for i, edge in enumerate(G1.edges()):
-        if(not binary_vec[i]):
-            u,v = edge
+    # for i, edge in enumerate(G1.edges()):
+    #     print("testing ",i, edge)
+    #     u,v = edge
+    #     assert (int(u)==int(binary_vec[i][1]) and int(v)==int(binary_vec[i][2])), "u, v = "+str(u)+","+str(v)+", bv = "+str(int(binary_vec[i][1]))+","+str(int(binary_vec[i][2]))
+    #     if(not binary_vec[i][0]):
+    #         to_remove.append((u, v))
+
+    for bv in binary_vec:
+        if(not bv[0]):
+            u, v = str(int(bv[1])), str(int(bv[2]))
             to_remove.append((u, v))
 
     for r in to_remove:
-        G1.remove_edge(r[0], r[1])        
+        G1.remove_edge(r[0], r[1]) 
+        print("removing edge = ", r[0], r[1])       
     return G1        
 
 def write_to_file(directory, all_paths):
-    print(all_paths)
-    for i in range(len(all_paths)):
-        print("\n\n")
+    # print(all_paths)
+    for i in range(len(all_paths)):  
         print(i,all_paths[i])
     with open(directory + "/path_nodes.txt", 'w') as file:
         file.writelines(','.join(str(j) for j in i) + '\n' for i in all_paths)
@@ -54,7 +61,7 @@ def process_it(G, directory):
             
     # print(all_paths) 
     # print("\n\n\n\n") 
-    print(len(all_paths))      
+    # print(len(all_paths))      
     write_to_file(directory, all_paths)  
     print("written to directory = ",directory)         
 

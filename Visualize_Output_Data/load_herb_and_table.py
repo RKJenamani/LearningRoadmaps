@@ -42,7 +42,17 @@ else:
     print objects_path # for me this is '/home/USERNAME/catkin_workspaces/herb_ws/src/pr-ordata/data/objects'
     objects_path = objects_path[0]
 
+def get_table_pose(condnsfile):
+    t = numpy.loadtxt(condnsfile)
+    print("t = ", t)
+    return t[3], t[7]    
+
 if __name__=='__main__':
+
+    parser = argparse.ArgumentParser(description='Generate environments')
+    parser.add_argument('--condnsfile',type=str,required=True)
+    args = parser.parse_args()
+    table_pose[0][3], table_pose[1][3] = get_table_pose(args.condnsfile)
 
     env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
     robot.right_arm.SetActive()

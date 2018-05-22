@@ -13,6 +13,9 @@ from random import choice
 
 EDGE_DISCRETIZATION = 7
 
+TABLE_X, TABLE_Y, TABLE_Z = 1, 0, 0
+TABLE_XW, TABLE_YW, TABLE_ZH = 0.75, 1.82, 1.2
+
 from catkin.find_in_workspaces import find_in_workspaces
 
 package_name = 'pr_ordata'
@@ -44,6 +47,7 @@ def edge_to_configs(state1, state2):
     step = diff/EDGE_DISCRETIZATION
 
     to_check = list()
+    to_check.append(config1)
 
     for i in xrange(EDGE_DISCRETIZATION - 1):
         conf = config1 + step*(i+1)
@@ -51,7 +55,7 @@ def edge_to_configs(state1, state2):
 
     return to_check    
 
-def check_for_collisions(G, robot, env):
+def check_for_collisions(G, robot, env, env_no):
     binary_vec = []
     for i,edge in enumerate(G.edges()):
             u,v = edge
@@ -60,22 +64,34 @@ def check_for_collisions(G, robot, env):
             configs_to_check = edge_to_configs(state1,state2)
 
             edge_free = 1
-
+            print("env_no = ",env_no)
+            print("len(binary_vec) = ",len(binary_vec))
+            # x = raw_input("press enter")
             for cc in configs_to_check:
                 robot.SetActiveDOFValues(cc)
-
                 if env.CheckCollision(robot) == True:
                     edge_free = 0
                     break
             if(not edge_free):
-                binary_vec.append('0')
+                binary_vec.append(['0', u, v])
             else:
-                binary_vec.append('1')    
+                binary_vec.append(['1', u, v])    
     return binary_vec     
 
 # to classify ee_pos as invalid or valid_start or valid_goal
-def classify_eepos(eepos, table_pose):
-    return 2 if eepos[2]>0.5 else 1
+def classify_ee_pos(eepos, table_pose):
+    global TABLE_X, TABLE_Y, TABLE_Z
+    TABLE_X = table_pose[0][3]
+    TABLE_Y = table_pose[1][3]
+    if( math.fabs(TABLE_X - eepos[0]) < TABLE_XW/2 + 0.2 and math.fabs(eepos[1] - TABLE_Y) < TABLE_YW/2 + 0.2 ):
+        if(eepos[2] > TABLE_Z and eepos[2] < TABLE_Z + 0.4):
+            return 1
+        elif(eepos[2] > 1.2 and eepos[2] < 1.8):
+            return 2
+        else:
+            return 0
+    else:
+        return 0
 
 #to append each output in the corresponding file
 # start and goal node have valid end effectors.
@@ -132,7 +148,7 @@ def object_around_table(task_id, robot, env, G):
 
         table.SetTransform(table_pose)
 
-        binary_vec = check_for_collisions(G, robot, env)
+        binary_vec = check_for_collisions(G, robot, env, env_no)
 
         cond = ""
         cond = table_pose.ravel()
@@ -149,7 +165,7 @@ def object_around_table(task_id, robot, env, G):
             trans = ee_trans[0:3,3]
             eepos = trans.tolist()
             
-            check = classify_eepos(eepos, table_pose)
+            check = classify_ee_pos(eepos, table_pose)
 
             # 1 -> valid start_pos, 2 -> valid goal_pos, 0 -> invalid_pos
             if(check==1 and len(start)<50):

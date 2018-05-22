@@ -43,6 +43,11 @@ else:
     print objects_path # for me this is '/home/USERNAME/catkin_workspaces/herb_ws/src/pr-ordata/data/objects'
     objects_path = objects_path[0]
 
+def state_to_numpy(state):
+    strlist = state.split()
+    val_list = [float(s) for s in strlist]
+    return numpy.array(val_list) 
+
 def get_table_pose(condnsfile):
     t = numpy.loadtxt(condnsfile)
     print("t = ", t)
@@ -81,15 +86,13 @@ def analyse_edge(config1, config2, env, robot):
 
     return to_check        
 
-def wait_for_user():
-  x = raw_input("Press Enter")
-
-if __name__=='__main__':
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--condnsfile',type=str,required=True)
     parser.add_argument('--graphfile',type=str,required=True)
+    parser.add_argument('--edge_no',type=str,required=True)
     args = parser.parse_args()
-    G = nx.read_graphml(args.graphfile)
+    G = nx.read_graphml(args.graphfile) 
 
     env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
     robot.right_arm.SetActive()
@@ -99,27 +102,23 @@ if __name__=='__main__':
     env.AddKinBody(table)
 
     xpos, ypos = get_table_pose(args.condnsfile)
-    pp_no = 11
+    pp_no = 3
     table_pose[0,3] = xpos
     table_pose[1,3] = ypos
 
     table.SetTransform(table_pose)
 
-    path_nodes_no_addr = "temp_data/path_nodes.txt"
-    DOF_file_addr = "temp_data/DOF_Values_enum_nodes.txt"
+    edge_no = args.edge_no
 
-    path_conf_values = helper.get_DOF_Values(G, DOF_file_addr, path_nodes_no_addr, pp_no) 
-    # path_eePos_values = helper.get_DOF_Values()
+    l = list(G.edges())
 
-    print("len(path_conf_values) = ", len(path_conf_values))
-    i = 0  
-    for conf in path_conf_values:
-      robot.SetActiveDOFValues(conf)
-      print("env(Collision) = ",env.CheckCollision(robot))
-      if(i < len(path_conf_values)-1):
-        print("i = ",i)
-        print("edge from ", conf, " to ", path_conf_values[i+1])
-        analyse_edge(conf, path_conf_values[i+1], env, robot)
-      wait_for_user()
-      i += 1
-    wait_for_user()
+    while(True):
+      edge_no = raw_input("Enter Edge no")
+      u, v = l[int(edge_no)]
+      print("edge from ", u, " to ", v)
+      config1 = state_to_numpy(G.node[u]['state'])
+      config2 = state_to_numpy(G.node[v]['state'])
+      analyse_edge(config1, config2, env, robot)
+
+    analyse_edge(state_to_numpy(G.node[u]['state']), state_to_numpy(G.node[v]['state']), env, robot)
+    raw_input(".............Press Enter")
