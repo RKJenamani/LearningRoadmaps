@@ -88,7 +88,7 @@ def main():
     eepos_file_addr = "temp_data/eePosns_enum_nodes.txt"
     s_node_no_file = "temp_data/start_node.txt"
     g_node_no_file = "temp_data/goal_node.txt"
-    pp_no = 11
+    pp_no = 5
 
     eepositions = helper.get_eepositions(G, eepos_file_addr, p_file_addr, pp_no)
     eepos_start = helper.get_eepositions(G, eepos_file_addr, s_node_no_file, pp_no)[0]

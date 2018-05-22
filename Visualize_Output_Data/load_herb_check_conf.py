@@ -99,7 +99,7 @@ if __name__=='__main__':
     env.AddKinBody(table)
 
     xpos, ypos = get_table_pose(args.condnsfile)
-    pp_no = 11
+    pp_no = 5
     table_pose[0,3] = xpos
     table_pose[1,3] = ypos
 

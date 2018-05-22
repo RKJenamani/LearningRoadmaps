@@ -10,7 +10,12 @@ k = 1
 #return k shortest path
 def k_shortest_paths(G, source, target, weight=None):
     global k
-    return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), k))
+    # print("source = ",source)
+    # print("target = ", target)
+    # print("got dijkstra_path = ", nx.dijkstra_path(G, source, target, weight))
+    # raw_input("Press Enter")
+    return [(nx.dijkstra_path(G, source, target, weight))]
+    # return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), k))
 
 def remove_invalid_edges(G1, binary_vec):
     to_remove = []
@@ -29,7 +34,7 @@ def remove_invalid_edges(G1, binary_vec):
 
     for r in to_remove:
         G1.remove_edge(r[0], r[1]) 
-        print("removing edge = ", r[0], r[1])       
+        # print("removing edge = ", r[0], r[1])       
     return G1        
 
 def write_to_file(directory, all_paths):
@@ -52,7 +57,7 @@ def process_it(G, directory):
         gl = str(int(goal[i]))
         paths = []
         try:
-            paths = k_shortest_paths(G1, src, gl)
+            paths = k_shortest_paths(G1, src, gl, 'weight')
             paths = list(chain.from_iterable(paths))
             all_paths.append(paths)
         except Exception as e:

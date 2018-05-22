@@ -64,8 +64,8 @@ def check_for_collisions(G, robot, env, env_no):
             configs_to_check = edge_to_configs(state1,state2)
 
             edge_free = 1
-            print("env_no = ",env_no)
-            print("len(binary_vec) = ",len(binary_vec))
+            # print("env_no = ",env_no)
+            # print("len(binary_vec) = ",len(binary_vec))
             # x = raw_input("press enter")
             for cc in configs_to_check:
                 robot.SetActiveDOFValues(cc)

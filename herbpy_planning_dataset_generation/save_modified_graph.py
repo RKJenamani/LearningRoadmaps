@@ -11,6 +11,9 @@ import networkx as nx
 import herbpy
 import os
 
+def calc_weight(config1, config2):
+    return float(np.sum((config2-config1)**2))
+
 def state_to_numpy(state):
     strlist = state.split()
     val_list = [float(s) for s in strlist]
@@ -21,7 +24,6 @@ def save_modified_graph(G, env, robot):
 
     i = 0
     for node in G.nodes():
-        G.node[node]['file_index'] = str(i)
         state = state_to_numpy(G.node[node]['state'])
         robot.SetActiveDOFValues(state)
 
@@ -33,7 +35,7 @@ def save_modified_graph(G, env, robot):
 
     for i, edge in enumerate(G.edges()):
         u, v = edge
-        G[u][v]['file_index'] = str(i)
+        G[u][v]['weight'] = calc_weight(state_to_numpy(G.node[u]['state']), state_to_numpy(G.node[v]['state']))
     nx.write_graphml(G, file_addr)    
 
 if __name__ == '__main__':
@@ -64,6 +66,6 @@ if __name__ == '__main__':
     confns = np.array(confns)
     eePosns = np.array(eePosns) 
 
-    np.savetxt("data/DOF_Values_enum_nodes.txt", confns, delimiter=" ", fmt="%s")
-    np.savetxt("data/eePosns_enum_nodes.txt", eePosns, delimiter=" ", fmt="%s")   
+    # np.savetxt("data/DOF_Values_enum_nodes.txt", confns, delimiter=" ", fmt="%s")
+    # np.savetxt("data/eePosns_enum_nodes.txt", eePosns, delimiter=" ", fmt="%s")   
         
