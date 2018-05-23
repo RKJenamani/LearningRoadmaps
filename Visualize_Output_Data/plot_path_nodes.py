@@ -85,14 +85,13 @@ def main():
     markerArray = MarkerArray()
 
     p_file_addr = "temp_data/path_nodes.txt"
-    eepos_file_addr = "temp_data/eePosns_enum_nodes.txt"
     s_node_no_file = "temp_data/start_node.txt"
     g_node_no_file = "temp_data/goal_node.txt"
     pp_no = 5
 
-    eepositions = helper.get_eepositions(G, eepos_file_addr, p_file_addr, pp_no)
-    eepos_start = helper.get_eepositions(G, eepos_file_addr, s_node_no_file, pp_no)[0]
-    eepos_goal  = helper.get_eepositions(G, eepos_file_addr, g_node_no_file, pp_no)[0]
+    eepositions = helper.get_eepositions(G, p_file_addr, pp_no)
+    eepos_start = helper.get_eepositions(G, s_node_no_file, pp_no)[0]
+    eepos_goal  = helper.get_eepositions(G, g_node_no_file, pp_no)[0]
 
     
     while not rospy.is_shutdown():
