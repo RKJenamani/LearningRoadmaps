@@ -18,15 +18,25 @@ def generate_graph(nodes): #nodes -> key, value pair, value => string with joint
         G.add_node(str(key), state = value) 
     return G
 
-def load_output_samples(file_addr):
+def load_output_samples(file_addr, s_node_file_addr, g_node_file_addr, orig_G):
     nodes = {}
     i = 0
     with open(file_addr, 'r') as file:
         lines  = file.readlines()
         for line in lines:
             line = line.strip('\n')
-            nodes[str(i)] = line
+            nodes["o"+str(i)] = line
             i += 1
+    with open(s_node_file_addr, 'r') as file:
+        lines  = file.readlines()
+        for line in lines:
+            line = line.strip('\n')
+            nodes[line] = orig_G.node[line]['state']
+    with open(g_node_file_addr, 'r') as file:
+        lines  = file.readlines()
+        for line in lines:
+            line = line.strip('\n')
+            nodes[line] = orig_G.node[line]['state']                
     print(nodes)
     return nodes
 
@@ -50,16 +60,26 @@ def connect_knn(G, K):
 
             # if(check_for_collision(node, sn)==1):
             G.add_edge(node, sn)
+            # print("connected edge from ",node, " to ",sn)
             G[node][sn]['weight'] = w
-            G1.remove_node(node1)
+            G1.remove_node(sn)
     return G
 
 if __name__ == '__main__':
+    print("-----Loading d6-----")
+    test_d = "-d6"
     parser = argparse.ArgumentParser(description='Evaluate Sample')
     parser.add_argument('--samplefile',type=str,required=True)
+    parser.add_argument('--graphfile',type=str,required=True)
     args = parser.parse_args()
 
-    nodes = load_output_samples(args.samplefile)
+    s_node_file_addr = "output_data/start_node"+test_d+".txt"
+    g_node_file_addr = "output_data/goal_node"+test_d+".txt"
+
+    orig_G = nx.read_graphml(args.graphfile)
+
+    nodes = load_output_samples(args.samplefile, s_node_file_addr, g_node_file_addr, orig_G)
     G = generate_graph(nodes)
     G = connect_knn(G, 5)
-    nx.write_graphml(G, "output_graph.graphml")
+    print("no of edges = ",len(list(G.edges())))
+    nx.write_graphml(G, "output_graph"+test_d+".graphml")

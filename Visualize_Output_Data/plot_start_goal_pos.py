@@ -21,9 +21,9 @@ def load_eepositions(G, s_file_addr, g_file_addr, markerArray):
             marker.header.frame_id = "/map"
             marker.type = marker.SPHERE
             marker.action = marker.ADD
-            marker.scale.x = 0.05
-            marker.scale.y = 0.05
-            marker.scale.z = 0.05
+            marker.scale.x = 0.06
+            marker.scale.y = 0.06
+            marker.scale.z = 0.06
             marker.color.a = 1.0
             marker.color.r = 1.0
             marker.color.g = 0.0
@@ -46,11 +46,11 @@ def load_eepositions(G, s_file_addr, g_file_addr, markerArray):
             marker.header.frame_id = "/map"
             marker.type = marker.SPHERE
             marker.action = marker.ADD
-            marker.scale.x = 0.05
-            marker.scale.y = 0.05
-            marker.scale.z = 0.05
+            marker.scale.x = 0.06
+            marker.scale.y = 0.06
+            marker.scale.z = 0.06
             marker.color.a = 1.0
-            marker.color.r = 0.0
+            marker.color.r = 1.0
             marker.color.g = 1.0
             marker.color.b = 0.0
             marker.pose.orientation.w = 1.0
@@ -71,9 +71,9 @@ def load_marker(G, s_eepositions, g_eepositions, markerArray):
             marker.header.frame_id = "/map"
             marker.type = marker.SPHERE
             marker.action = marker.ADD
-            marker.scale.x = 0.05
-            marker.scale.y = 0.05
-            marker.scale.z = 0.05
+            marker.scale.x = 0.06
+            marker.scale.y = 0.06
+            marker.scale.z = 0.06
             marker.color.a = 1.0
             marker.color.r = 1.0
             marker.color.g = 0.0
@@ -90,11 +90,11 @@ def load_marker(G, s_eepositions, g_eepositions, markerArray):
             marker.header.frame_id = "/map"
             marker.type = marker.SPHERE
             marker.action = marker.ADD
-            marker.scale.x = 0.05
-            marker.scale.y = 0.05
-            marker.scale.z = 0.05
+            marker.scale.x = 0.06
+            marker.scale.y = 0.06
+            marker.scale.z = 0.06
             marker.color.a = 1.0
-            marker.color.r = 0.0
+            marker.color.r = 1.0
             marker.color.g = 1.0
             marker.color.b = 0.0
             marker.pose.orientation.w = 1.0
@@ -107,18 +107,18 @@ def load_marker(G, s_eepositions, g_eepositions, markerArray):
     return markerArray    
 
 def main():
+    print("-----For d6------")
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--graphfile',type=str,required=True)
     args = parser.parse_args()
     
     G = nx.read_graphml(args.graphfile)
 
-    s_file_addr = "temp_data/start_node.txt"
-    g_file_addr = "temp_data/goal_node.txt"
-    eepos_file_addr = "temp_data/eePosns_enum_nodes.txt"
+    s_file_addr = "temp_data/start_node-d6.txt"
+    g_file_addr = "temp_data/goal_node-d6.txt"
 
-    s_eepositions = helper.get_eepositions(G, eepos_file_addr, s_file_addr, None)
-    g_eepositions = helper.get_eepositions(G, eepos_file_addr, g_file_addr, None)
+    s_eepositions = helper.get_eepositions(G, s_file_addr, None)
+    g_eepositions = helper.get_eepositions(G, g_file_addr, None)
 
     count = 0
     topic = 'start_goal_pos'

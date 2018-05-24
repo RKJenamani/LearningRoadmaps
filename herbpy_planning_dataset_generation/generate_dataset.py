@@ -14,7 +14,7 @@ from random import choice
 EDGE_DISCRETIZATION = 7
 
 TABLE_X, TABLE_Y, TABLE_Z = 1, 0, 0
-TABLE_XW, TABLE_YW, TABLE_ZH = 0.75, 1.82, 1.2
+TABLE_XW, TABLE_YW, TABLE_ZH = 0.75, 1.82, 0.8
 
 from catkin.find_in_workspaces import find_in_workspaces
 
@@ -84,9 +84,9 @@ def classify_ee_pos(eepos, table_pose):
     TABLE_X = table_pose[0][3]
     TABLE_Y = table_pose[1][3]
     if( math.fabs(TABLE_X - eepos[0]) < TABLE_XW/2 + 0.2 and math.fabs(eepos[1] - TABLE_Y) < TABLE_YW/2 + 0.2 ):
-        if(eepos[2] > TABLE_Z and eepos[2] < TABLE_Z + 0.4):
+        if(eepos[2] > TABLE_Z and eepos[2] < TABLE_Z + 0.2):
             return 1
-        elif(eepos[2] > 1.2 and eepos[2] < 1.8):
+        elif(eepos[2] > TABLE_ZH and eepos[2] < TABLE_ZH + 0.2):
             return 2
         else:
             return 0
