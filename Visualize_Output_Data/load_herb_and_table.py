@@ -44,7 +44,7 @@ else:
 
 def get_table_pose(condnsfile):
     t = numpy.loadtxt(condnsfile)
-    print("t = ", t)
+    # print("t = ", t)
     return t[3], t[7]    
 
 if __name__=='__main__':
@@ -61,10 +61,21 @@ if __name__=='__main__':
     table = env.ReadKinBodyXMLFile(table_file)
     env.AddKinBody(table)
 
-    xpos, ypos = get_table_pose(args.condnsfile)
+    xpos, ypos = -0.9, 0
     table_pose[0,3] = xpos
     table_pose[1,3] = ypos
 
     table.SetTransform(table_pose)
+    Tz = openravepy.matrixFromAxisAngle([0,0,numpy.pi/2])
+
+    table.SetTransform(numpy.dot(Tz,table.GetTransform()))
+
+    table_file1 = os.path.join(objects_path,'objects/table1.kinbody.xml')
+    table1 = env.ReadKinBodyXMLFile(table_file1)
+    env.AddKinBody(table1)
+    xpos, ypos = get_table_pose(args.condnsfile)
+    table_pose[0,3] = xpos
+    table_pose[1,3] = ypos
+    table1.SetTransform(table_pose)    
     
     x = raw_input("Press Enter")

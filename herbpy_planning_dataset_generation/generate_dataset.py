@@ -10,6 +10,7 @@ import json
 import networkx as nx
 from itertools import islice
 from random import choice
+import copy
 
 EDGE_DISCRETIZATION = 7
 
@@ -84,7 +85,7 @@ def classify_ee_pos(eepos, table_pose):
     TABLE_X = table_pose[0][3]
     TABLE_Y = table_pose[1][3]
     if( math.fabs(TABLE_X - eepos[0]) < TABLE_XW/2 + 0.2 and math.fabs(eepos[1] - TABLE_Y) < TABLE_YW/2 + 0.2 ):
-        if(eepos[2] > TABLE_Z and eepos[2] < TABLE_Z + 0.2):
+        if(eepos[2] > TABLE_Z and eepos[2] < TABLE_Z + 0.4):
             return 1
         elif(eepos[2] > TABLE_ZH and eepos[2] < TABLE_ZH + 0.2):
             return 2
@@ -119,8 +120,11 @@ def write_one_dir(task_id, env_no,start_node, goal_node, condition_vectors, bina
 def object_around_table(task_id, robot, env, G):
     # Load table from pr_ordata
     table_file = os.path.join(objects_path,'objects/table.kinbody.xml')
+    table_file1 = os.path.join(objects_path,'objects/table1.kinbody.xml')
     table = env.ReadKinBodyXMLFile(table_file)
     env.AddKinBody(table)
+    table1 = env.ReadKinBodyXMLFile(table_file1)
+    env.AddKinBody(table1)
 
     table_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
           7.83268307e-01],
@@ -138,6 +142,7 @@ def object_around_table(task_id, robot, env, G):
 
     # n environment setup => n sub directory inside task directory
     for env_no in range(10):
+        print("env_no = ", env_no)
         xpos = XMIN + numpy.random.rand()*(XMAX - XMIN)
         ypos = YMIN + numpy.random.rand()*(YMAX - YMIN)
 
@@ -148,15 +153,21 @@ def object_around_table(task_id, robot, env, G):
 
         table.SetTransform(table_pose)
 
-        binary_vec = check_for_collisions(G, robot, env, env_no)
-
+        table_pose2 = copy.deepcopy(table_pose)
+        table_pose2[0][3], table_pose2[1][3] = -0.9, 0
+        table1.SetTransform(table_pose2)
+        Tz = openravepy.matrixFromAxisAngle([0,0,numpy.pi/2])
+        table1.SetTransform(numpy.dot(Tz,table1.GetTransform()))
+        table_pose2 = table_pose2.ravel()
+        print("table_pose2 = ", table_pose2)
         cond = ""
-        cond = table_pose.ravel()
-
+        cond = numpy.concatenate((numpy.array(table_pose.ravel()), numpy.array(table_pose2)))
+        binary_vec = check_for_collisions(G, robot, env, env_no)
         start = []
         goal  = []
-
+        print("table_pose = ", table_pose)
         while(len(start)<50 or len(goal)<50):
+            print("in while loop, start = ", len(start), " goal = ", len(goal))
             random_node = choice(list(G.nodes()))
             state = state_to_numpy(G.node[random_node]['state'])
             robot.SetActiveDOFValues(state)
@@ -164,7 +175,6 @@ def object_around_table(task_id, robot, env, G):
             ee_trans = robot.right_arm.GetEndEffectorTransform()
             trans = ee_trans[0:3,3]
             eepos = trans.tolist()
-            
             check = classify_ee_pos(eepos, table_pose)
 
             # 1 -> valid start_pos, 2 -> valid goal_pos, 0 -> invalid_pos
@@ -173,7 +183,8 @@ def object_around_table(task_id, robot, env, G):
             elif (check==2 and len(goal)<50):
                 goal.append(random_node)
 
-        if(len(start) == 50 and len(goal) == 50):        
+        if(len(start) == 50 and len(goal) == 50):    
+            print("write_one_dir")    
             write_one_dir(task_id, env_no, start, goal, cond, binary_vec)
         else:
             print("no of start or goal posiitons is under limit")            

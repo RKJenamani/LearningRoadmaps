@@ -87,7 +87,7 @@ def main():
     p_file_addr = "temp_data/path_nodes.txt"
     s_node_no_file = "temp_data/start_node.txt"
     g_node_no_file = "temp_data/goal_node.txt"
-    pp_no = 5
+    pp_no = 4
 
     eepositions = helper.get_eepositions(G, p_file_addr, pp_no)
     eepos_start = helper.get_eepositions(G, s_node_no_file, pp_no)[0]
