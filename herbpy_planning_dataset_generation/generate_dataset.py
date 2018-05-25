@@ -80,15 +80,19 @@ def check_for_collisions(G, robot, env, env_no):
     return binary_vec     
 
 # to classify ee_pos as invalid or valid_start or valid_goal
-def classify_ee_pos(eepos, table_pose):
+def classify_ee_pos(eepos, table_pose, box_pose):
     global TABLE_X, TABLE_Y, TABLE_Z
     TABLE_X = table_pose[0][3]
     TABLE_Y = table_pose[1][3]
+
     if( math.fabs(TABLE_X - eepos[0]) < TABLE_XW/2 + 0.2 and math.fabs(eepos[1] - TABLE_Y) < TABLE_YW/2 + 0.2 ):
         if(eepos[2] > TABLE_Z and eepos[2] < TABLE_Z + 0.4):
             return 1
         elif(eepos[2] > TABLE_ZH and eepos[2] < TABLE_ZH + 0.2):
-            return 2
+            if(math.fabs(eepos[0]-box_pose[0][3])<0.41/2 and math.fabs(eepos[1]-box_pose[1][3])<0.41/2):
+                return 0
+            else:    
+                return 2
         else:
             return 0
     else:
@@ -120,11 +124,11 @@ def write_one_dir(task_id, env_no,start_node, goal_node, condition_vectors, bina
 def object_around_table(task_id, robot, env, G):
     # Load table from pr_ordata
     table_file = os.path.join(objects_path,'objects/table.kinbody.xml')
-    table_file1 = os.path.join(objects_path,'objects/table1.kinbody.xml')
+    tall_box_file = os.path.join(objects_path,'objects/tall_white_box.kinbody.xml')
     table = env.ReadKinBodyXMLFile(table_file)
     env.AddKinBody(table)
-    table1 = env.ReadKinBodyXMLFile(table_file1)
-    env.AddKinBody(table1)
+    tall_white_box = env.ReadKinBodyXMLFile(tall_box_file)
+    env.AddKinBody(tall_white_box)
 
     table_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
           7.83268307e-01],
@@ -135,13 +139,29 @@ def object_around_table(task_id, robot, env, G):
        [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
           1.00000000e+00]])
 
+    box_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
+          7.83268307e-01],
+       [  9.99994571e-01,  -5.95063642e-08,  -3.29499984e-03,
+         -2.58088849e-03],
+       [  5.97027617e-08,   1.00000000e+00,   5.95063642e-08,
+          1.19378528e-07],
+       [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+          1.00000000e+00]])    
+
     XMIN = 0.638
     XMAX = 1.2
     YMIN = -1.17
     YMAX = 0.74
 
+    b_XMIN = +0.9
+    b_XMAX = +1.0   
+    b_YMIN = -0.6
+    b_YMAX = +0.6
+    b_ZMIN = +0.8
+    b_ZMAX = +1.2
+
     # n environment setup => n sub directory inside task directory
-    for env_no in range(10):
+    for env_no in range(20):
         print("env_no = ", env_no)
         xpos = XMIN + numpy.random.rand()*(XMAX - XMIN)
         ypos = YMIN + numpy.random.rand()*(YMAX - YMIN)
@@ -153,15 +173,17 @@ def object_around_table(task_id, robot, env, G):
 
         table.SetTransform(table_pose)
 
-        table_pose2 = copy.deepcopy(table_pose)
-        table_pose2[0][3], table_pose2[1][3] = -0.9, 0
-        table1.SetTransform(table_pose2)
-        Tz = openravepy.matrixFromAxisAngle([0,0,numpy.pi/2])
-        table1.SetTransform(numpy.dot(Tz,table1.GetTransform()))
-        table_pose2 = table_pose2.ravel()
-        print("table_pose2 = ", table_pose2)
+        b_xpos = b_XMIN + numpy.random.rand()*(b_XMAX - b_XMIN)
+        b_ypos = b_YMIN + numpy.random.rand()*(b_YMAX - b_YMIN)
+        b_zpos = b_ZMIN + numpy.random.rand()*(b_ZMAX - b_ZMIN)
+
+        box_pose[0][3], box_pose[1][3], box_pose[2][3] = b_xpos, b_ypos, b_zpos
+        tall_white_box.SetTransform(box_pose)
+       
+        box_pose_1d = box_pose.ravel()
+        print("box_pose = ", box_pose)
         cond = ""
-        cond = numpy.concatenate((numpy.array(table_pose.ravel()), numpy.array(table_pose2)))
+        cond = numpy.concatenate((numpy.array(table_pose.ravel()), numpy.array(box_pose_1d)))
         binary_vec = check_for_collisions(G, robot, env, env_no)
         start = []
         goal  = []
@@ -175,7 +197,7 @@ def object_around_table(task_id, robot, env, G):
             ee_trans = robot.right_arm.GetEndEffectorTransform()
             trans = ee_trans[0:3,3]
             eepos = trans.tolist()
-            check = classify_ee_pos(eepos, table_pose)
+            check = classify_ee_pos(eepos, table_pose, box_pose)
 
             # 1 -> valid start_pos, 2 -> valid goal_pos, 0 -> invalid_pos
             if(check==1 and len(start)<50):

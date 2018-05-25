@@ -39,6 +39,7 @@ def process_it(G, directory):
                     # print("Data = ",node_conf, s, g, cond)
                     print("\n")
                     curr_node = np.concatenate((node_conf, s, g, cond))
+                    print("shape of curr_node = ", curr_node.shape)
                     write_one_row(curr_node)
 
 def list_all_dir(data_dir):
