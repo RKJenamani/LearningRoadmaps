@@ -47,7 +47,7 @@ def connect_knn(G, K):
         i += 1    
     return G    
 
-def save_modified_graph(G):
+def save_modified_graph(G, env, robot):
     file_addr = "graphs/modified_graph_dense.graphml"
 
     for i, edge in enumerate(G.edges()):
