@@ -5,4 +5,6 @@ cvae_learner/data/
 cvae_learner/graphs/
 cvae_evaluator/data/
 cvae_evaluator/graphs/
+cvae_evaluator/output_data/
+Visualize_Output_Data/data/
 *.pyc

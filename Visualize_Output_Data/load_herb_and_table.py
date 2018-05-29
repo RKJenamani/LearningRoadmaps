@@ -18,6 +18,14 @@ table_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
        [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
           1.00000000e+00]])
 
+box_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
+          7.83268307e-01],
+       [  9.99994571e-01,  -5.95063642e-08,  -3.29499984e-03,
+         -2.58088849e-03],
+       [  5.97027617e-08,   1.00000000e+00,   5.95063642e-08,
+          1.19378528e-07],
+       [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+          1.00000000e+00]])
 
 XMIN = 0.638
 XMAX = 1.2
@@ -44,38 +52,32 @@ else:
 
 def get_table_pose(condnsfile):
     t = numpy.loadtxt(condnsfile)
-    # print("t = ", t)
-    return t[3], t[7]    
+    print("t = ", t)
+    return t[3], t[7], t[19], t[23], t[27]
 
 if __name__=='__main__':
 
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--condnsfile',type=str,required=True)
     args = parser.parse_args()
-    table_pose[0][3], table_pose[1][3] = get_table_pose(args.condnsfile)
-
     env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
     robot.right_arm.SetActive()
     # Load table from pr_ordata
     table_file = os.path.join(objects_path,'objects/table.kinbody.xml')
+    tall_white_box_file = os.path.join(objects_path,'objects/tall_white_box.kinbody.xml')
     table = env.ReadKinBodyXMLFile(table_file)
     env.AddKinBody(table)
+    tall_white_box = env.ReadKinBodyXMLFile(tall_white_box_file)
+    env.AddKinBody(tall_white_box)
 
-    xpos, ypos = -0.9, 0
+    xpos, ypos, xpos1, ypos1, zpos1 = get_table_pose(args.condnsfile)
     table_pose[0,3] = xpos
     table_pose[1,3] = ypos
 
     table.SetTransform(table_pose)
-    Tz = openravepy.matrixFromAxisAngle([0,0,numpy.pi/2])
 
-    table.SetTransform(numpy.dot(Tz,table.GetTransform()))
-
-    table_file1 = os.path.join(objects_path,'objects/table1.kinbody.xml')
-    table1 = env.ReadKinBodyXMLFile(table_file1)
-    env.AddKinBody(table1)
-    xpos, ypos = get_table_pose(args.condnsfile)
-    table_pose[0,3] = xpos
-    table_pose[1,3] = ypos
-    table1.SetTransform(table_pose)    
-    
+    box_pose[0,3] = xpos1
+    box_pose[1,3] = ypos1
+    box_pose[2,3] = zpos1
+    tall_white_box.SetTransform(box_pose)
     x = raw_input("Press Enter")

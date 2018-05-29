@@ -97,8 +97,8 @@ def remove_invalid_edges(G, env, robot):
     return G       
 
 def main():
-    print("Analysing d6")
-    test_d = "-d6"
+    test_d = "_12"
+    print("Analysing "+test_d)
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--outputgraphfile',type=str,required=True)
     parser.add_argument('--graphfile',type=str,required=True)

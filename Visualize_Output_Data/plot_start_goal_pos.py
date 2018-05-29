@@ -107,15 +107,16 @@ def load_marker(G, s_eepositions, g_eepositions, markerArray):
     return markerArray    
 
 def main():
-    print("-----For d6------")
+    print("-----For test------")
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--graphfile',type=str,required=True)
+    parser.add_argument('--envdir',type=str,required=True)
     args = parser.parse_args()
     
     G = nx.read_graphml(args.graphfile)
 
-    s_file_addr = "temp_data/start_node-d6.txt"
-    g_file_addr = "temp_data/goal_node-d6.txt"
+    s_file_addr = args.envdir + "start_node.txt"
+    g_file_addr = args.envdir + "goal_node.txt"
 
     s_eepositions = helper.get_eepositions(G, s_file_addr, None)
     g_eepositions = helper.get_eepositions(G, g_file_addr, None)

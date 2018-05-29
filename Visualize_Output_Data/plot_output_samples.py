@@ -19,6 +19,15 @@ table_pose = np.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
        [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
           1.00000000e+00]])
 
+box_pose = np.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
+          7.83268307e-01],
+       [  9.99994571e-01,  -5.95063642e-08,  -3.29499984e-03,
+         -2.58088849e-03],
+       [  5.97027617e-08,   1.00000000e+00,   5.95063642e-08,
+          1.19378528e-07],
+       [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+          1.00000000e+00]])
+
 from catkin.find_in_workspaces import find_in_workspaces
 
 package_name = 'pr_ordata'
@@ -96,10 +105,10 @@ def append_start_goal(eepos_start, eepos_goal, markerArray):
 
     return markerArray
 
-def get_table_pose(condnsfile):
+def get_table_box_pose(condnsfile):
     t = np.loadtxt(condnsfile)
     print("t = ", t)
-    return t[3], t[7]
+    return t[3], t[7], t[19], t[23], t[27]
 
 def get_eepositions_from_samples(env, robot, p_file_addr):
     eepositions = []
@@ -156,7 +165,7 @@ def get_markers_expected_samples(G, env, robot, path_node_file_addr):
     return markerArray1
 
 def main():
-    print("Working on d6")
+    print("Working on 12")
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--condnsfile',type=str,required=True)
     parser.add_argument('--graphfile',type=str,required=True)
@@ -171,12 +180,21 @@ def main():
     table = env.ReadKinBodyXMLFile(table_file)
     env.AddKinBody(table)
 
-    xpos, ypos = get_table_pose(args.condnsfile)
+    tall_white_box_file = os.path.join(objects_path,'objects/tall_white_box.kinbody.xml')
+    tall_white_box = env.ReadKinBodyXMLFile(tall_white_box_file)
+    env.AddKinBody(tall_white_box)
+
+    xpos, ypos, xpos1, ypos1, zpos1 = get_table_box_pose(args.condnsfile)
     pp_no = 5
     table_pose[0,3] = xpos
     table_pose[1,3] = ypos
 
+    box_pose[0,3] = xpos1
+    box_pose[1,3] = ypos1
+    box_pose[2,3] = zpos1
+
     table.SetTransform(table_pose)
+    tall_white_box.SetTransform(box_pose)
 
     count = 0
     topic = 'output_node_pos'
@@ -189,11 +207,11 @@ def main():
 
     markerArray = MarkerArray()
 
-    p_file_addr = "output_data/output_samples-d6.txt"
+    p_file_addr = "output_data/output_samples_12.txt"
 
     eepositions = get_eepositions_from_samples(env, robot, p_file_addr)
 
-    path_node_file_addr = "output_data/expected_path_nodes-d6.txt"
+    path_node_file_addr = "output_data/expected_path_nodes_12.txt"
     
     markerArray1 = get_markers_expected_samples(G, env, robot, path_node_file_addr)
     

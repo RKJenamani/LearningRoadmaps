@@ -66,8 +66,8 @@ def connect_knn(G, K):
     return G
 
 if __name__ == '__main__':
-    print("-----Loading d6-----")
-    test_d = "-d6"
+    test_d = "_12"
+    print("-----Loading "+test_d+"-----")
     parser = argparse.ArgumentParser(description='Evaluate Sample')
     parser.add_argument('--samplefile',type=str,required=True)
     parser.add_argument('--graphfile',type=str,required=True)
@@ -80,6 +80,6 @@ if __name__ == '__main__':
 
     nodes = load_output_samples(args.samplefile, s_node_file_addr, g_node_file_addr, orig_G)
     G = generate_graph(nodes)
-    G = connect_knn(G, 5)
+    G = connect_knn(G, 10)
     print("no of edges = ",len(list(G.edges())))
     nx.write_graphml(G, "output_graph"+test_d+".graphml")

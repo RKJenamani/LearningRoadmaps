@@ -85,13 +85,10 @@ def classify_ee_pos(eepos, table_pose, box_pose):
     TABLE_X = table_pose[0][3]
     TABLE_Y = table_pose[1][3]
 
-    if( math.fabs(TABLE_X - eepos[0]) < TABLE_XW/2 + 0.2 and math.fabs(eepos[1] - TABLE_Y) < TABLE_YW/2 + 0.2 ):
+    if( math.fabs(TABLE_X - eepos[0]) < TABLE_XW/2 + 0.1 and math.fabs(eepos[1] - TABLE_Y) < TABLE_YW/2 + 0.1 ):
         if(eepos[2] > TABLE_Z and eepos[2] < TABLE_Z + 0.4):
             return 1
-        elif(eepos[2] > TABLE_ZH and eepos[2] < TABLE_ZH + 0.2):
-            if(math.fabs(eepos[0]-box_pose[0][3])<0.41/2 and math.fabs(eepos[1]-box_pose[1][3])<0.41/2):
-                return 0
-            else:    
+        elif(eepos[2] > TABLE_ZH and eepos[2] < TABLE_ZH + 0.2):   
                 return 2
         else:
             return 0
@@ -148,15 +145,15 @@ def object_around_table(task_id, robot, env, G):
        [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
           1.00000000e+00]])    
 
-    XMIN = 0.638
-    XMAX = 1.2
+    XMIN = 0.738
+    XMAX = 1.0
     YMIN = -1.17
     YMAX = 0.74
 
     b_XMIN = +0.9
     b_XMAX = +1.0   
-    b_YMIN = -0.6
-    b_YMAX = +0.6
+    b_YMIN = -0.9
+    b_YMAX = +0.3
     b_ZMIN = +0.8
     b_ZMAX = +1.2
 
@@ -193,6 +190,9 @@ def object_around_table(task_id, robot, env, G):
             random_node = choice(list(G.nodes()))
             state = state_to_numpy(G.node[random_node]['state'])
             robot.SetActiveDOFValues(state)
+
+            if(env.CheckCollision(robot)==True):
+                continue
 
             ee_trans = robot.right_arm.GetEndEffectorTransform()
             trans = ee_trans[0:3,3]
