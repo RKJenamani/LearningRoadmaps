@@ -56,6 +56,19 @@ def edge_to_configs(state1, state2):
 
     return to_check    
 
+def is_trivial(state1, state2, env, robot):
+    configs_to_check = edge_to_configs(state1,state2)
+
+    edge_free = 1
+   
+    for cc in configs_to_check:
+        robot.SetActiveDOFValues(cc)
+        if env.CheckCollision(robot) == True:
+            edge_free = 0
+            break
+
+    return edge_free       
+
 def check_for_collisions(G, robot, env, env_no):
     binary_vec = []
     for i,edge in enumerate(G.edges()):
@@ -85,15 +98,23 @@ def classify_ee_pos(eepos, table_pose, box_pose):
     TABLE_X = table_pose[0][3]
     TABLE_Y = table_pose[1][3]
 
-    if( math.fabs(TABLE_X - eepos[0]) < TABLE_XW/2 + 0.1 and math.fabs(eepos[1] - TABLE_Y) < TABLE_YW/2 + 0.1 ):
-        if(eepos[2] > TABLE_Z and eepos[2] < TABLE_Z + 0.4):
-            return 1
-        elif(eepos[2] > TABLE_ZH and eepos[2] < TABLE_ZH + 0.2):   
-                return 2
-        else:
-            return 0
-    else:
-        return 0
+    # if( math.fabs(TABLE_X - eepos[0]) < TABLE_XW/2 + 0.1 and math.fabs(eepos[1] - TABLE_Y) < TABLE_YW/2 + 0.1 ):
+    #     if(eepos[2] > TABLE_Z and eepos[2] < TABLE_Z + 0.4):
+    #         return 1
+    #     elif(eepos[2] > TABLE_ZH and eepos[2] < TABLE_ZH + 0.2):   
+    #             return 2
+    #     else:
+    #         return 0
+    # else:
+    #     return 0
+
+    if(eepos[2] > TABLE_ZH and eepos[2] < TABLE_ZH + 0.2):
+        if( math.fabs(TABLE_X - eepos[0]) < TABLE_XW/2 + 0.1 ):
+            if(eepos[1]<box_pose[1,3]):
+                return 1
+            else:
+                return 2 
+    return 0               
 
 #to append each output in the corresponding file
 # start and goal node have valid end effectors.
@@ -152,7 +173,7 @@ def object_around_table(task_id, robot, env, G):
 
     b_XMIN = +0.9
     b_XMAX = +1.0   
-    b_YMIN = -0.9
+    b_YMIN = -0.7
     b_YMAX = +0.3
     b_ZMIN = +0.8
     b_ZMAX = +1.2

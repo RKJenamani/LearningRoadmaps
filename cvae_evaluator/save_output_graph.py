@@ -66,20 +66,20 @@ def connect_knn(G, K):
     return G
 
 if __name__ == '__main__':
-    test_d = "_12"
-    print("-----Loading "+test_d+"-----")
     parser = argparse.ArgumentParser(description='Evaluate Sample')
     parser.add_argument('--samplefile',type=str,required=True)
     parser.add_argument('--graphfile',type=str,required=True)
+    parser.add_argument('--envdir',type=str,required=True)
     args = parser.parse_args()
+    print("Checking "+args.envdir)
 
-    s_node_file_addr = "output_data/start_node"+test_d+".txt"
-    g_node_file_addr = "output_data/goal_node"+test_d+".txt"
+    s_node_file_addr = args.envdir + "/start_node.txt"
+    g_node_file_addr = args.envdir + "/goal_node.txt"
 
     orig_G = nx.read_graphml(args.graphfile)
 
     nodes = load_output_samples(args.samplefile, s_node_file_addr, g_node_file_addr, orig_G)
     G = generate_graph(nodes)
-    G = connect_knn(G, 10)
+    G = connect_knn(G, 15)
     print("no of edges = ",len(list(G.edges())))
-    nx.write_graphml(G, "output_graph"+test_d+".graphml")
+    nx.write_graphml(G, "output_graph_test.graphml")

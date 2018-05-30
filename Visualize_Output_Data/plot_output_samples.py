@@ -165,7 +165,8 @@ def get_markers_expected_samples(G, env, robot, path_node_file_addr):
     return markerArray1
 
 def main():
-    print("Working on 12")
+    env_no = "17"
+    print("Working on "+env_no)
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--condnsfile',type=str,required=True)
     parser.add_argument('--graphfile',type=str,required=True)
@@ -207,11 +208,11 @@ def main():
 
     markerArray = MarkerArray()
 
-    p_file_addr = "output_data/output_samples_12.txt"
+    p_file_addr = "output_data_z4/output_samples_"+env_no+".txt"
 
     eepositions = get_eepositions_from_samples(env, robot, p_file_addr)
 
-    path_node_file_addr = "output_data/expected_path_nodes_12.txt"
+    path_node_file_addr = "output_data_z4/expected_path_nodes_"+env_no+".txt"
     
     markerArray1 = get_markers_expected_samples(G, env, robot, path_node_file_addr)
     
