@@ -37,7 +37,7 @@ def load_output_samples(file_addr, s_node_file_addr, g_node_file_addr, orig_G):
         for line in lines:
             line = line.strip('\n')
             nodes[line] = orig_G.node[line]['state']                
-    print(nodes)
+    # print(nodes)
     return nodes
 
 def connect_knn(G, K):
@@ -66,20 +66,58 @@ def connect_knn(G, K):
     return G
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Evaluate Sample')
-    parser.add_argument('--samplefile',type=str,required=True)
-    parser.add_argument('--graphfile',type=str,required=True)
-    parser.add_argument('--envdir',type=str,required=True)
-    args = parser.parse_args()
-    print("Checking "+args.envdir)
+    K = 05
+    # parser = argparse.ArgumentParser(description='Evaluate Sample')
+    # parser.add_argument('--graphfile',type=str,required=True)
+    # parser.add_argument('--envdir',type=str,required=True)
+    # args = parser.parse_args()
+    # print("Checking "+args.envdir)
+    # print("K = ",K)
 
-    s_node_file_addr = args.envdir + "/start_node.txt"
-    g_node_file_addr = args.envdir + "/goal_node.txt"
+    # s_node_file_addr = args.envdir + "/start_node.txt"
+    # g_node_file_addr = args.envdir + "/goal_node.txt"
+
+    # orig_G = nx.read_graphml(args.graphfile)
+
+    # nodes = load_output_samples(args.envdir + "/output_samples_z6_500.txt", s_node_file_addr, g_node_file_addr, orig_G)
+    # G = generate_graph(nodes)
+    # G = connect_knn(G, K)
+    # print("no of edges = ",len(list(G.edges())))
+    # print("no of nodes = ",len(list(G.nodes())))
+    # nx.write_graphml(G, "output_graph_test.graphml")
+
+    K = ["5", "10", "15"]
+    z = 6
+    n_samples = ["200", "300", "400", "500"]
+    parser = argparse.ArgumentParser(description='Evaluate Sample')
+    parser.add_argument('--graphfile',type=str,required=True)
+    # parser.add_argument('--envdir',type=str,required=True)
+    e_dir = ["test_data_9June/T1/2", "test_data_9June/T1/4", "test_data_9June/T2/2"]
+    # e_dir = ["final_test_data/T2/20"]
+
+    args = parser.parse_args()
 
     orig_G = nx.read_graphml(args.graphfile)
+    for envdir in e_dir:
+        print("Checking "+envdir)
 
-    nodes = load_output_samples(args.samplefile, s_node_file_addr, g_node_file_addr, orig_G)
-    G = generate_graph(nodes)
-    G = connect_knn(G, 15)
-    print("no of edges = ",len(list(G.edges())))
-    nx.write_graphml(G, "output_graph_test.graphml")
+        for no_samples in n_samples:
+            for k in K:
+                print("no_samples = ",no_samples)
+                print("k = ",k)
+
+                s_node_file_addr = envdir + "/start_node.txt"
+                g_node_file_addr = envdir + "/goal_node.txt"
+
+
+                # nodes = load_output_samples(envdir+"/output_samples_z"+str(z)+"_n"+str(no_samples)+".txt", s_node_file_addr, g_node_file_addr, orig_G)
+                print("loading output samples..")
+                nodes = load_output_samples("uniform_samples/uniform_samples_"+str(no_samples)+".txt", s_node_file_addr, g_node_file_addr, orig_G)
+                print("adding nodes to graph")
+                G = generate_graph(nodes)
+                print("connecting knn")
+                G = connect_knn(G, int(k))
+                print("no of edges = ",len(list(G.edges())))
+                print("no of nodes = ",len(list(G.nodes())))
+                # nx.write_graphml(G,envdir + "/output_graph_z"+str(z)+"_f_"+no_samples+"_k"+k+".graphml")
+                nx.write_graphml(G,envdir + "/output_graph_uniform"+str(no_samples)+"_k"+k+".graphml")

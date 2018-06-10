@@ -81,7 +81,7 @@ def find_shortest_paths(G, source, target, weight=None):
     return path_nodes, path_length   
 
 def remove_invalid_edges(G, env, robot):
-    print("total no of edges = ", len(list(G.edges())))
+    # print("total no of edges = ", len(list(G.edges())))
     to_remove = []
     for edge in G.edges():
         u, v = edge
@@ -101,7 +101,7 @@ def remove_invalid_edges(G, env, robot):
     for r in to_remove:
         G.remove_edge(r[0], r[1])
 
-    print("no of edges in collision = ", len(to_remove))    
+    # print("no of edges in collision = ", len(to_remove))    
 
     return G       
 
@@ -177,7 +177,103 @@ def main():
     print("orig found_path = ", found_path)   
     print("orig Average path_length = ", total_path_length/found_path)        
 
+def main1():
+    file = open("Results_Uniform.txt", "w")
+    parser = argparse.ArgumentParser(description='Generate environments')
+    # parser.add_argument('--outputgraphfile',type=str,required=True)
+    parser.add_argument('--graphfile',type=str,required=True)
+    # parser.add_argument('--envdir',type=str,required=True)
+    env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
+    robot.right_arm.SetActive()
+    # Load table from pr_ordata
+    table_file = os.path.join(objects_path,'objects/table.kinbody.xml')
+    tall_white_box_file = os.path.join(objects_path,'objects/tall_white_box.kinbody.xml')
+    table = env.ReadKinBodyXMLFile(table_file)
+    env.AddKinBody(table)
+    tall_white_box = env.ReadKinBodyXMLFile(tall_white_box_file)
+    env.AddKinBody(tall_white_box)
+    args = parser.parse_args()
+
+    e_dir = ["test_data_9June/T1/2", "test_data_9June/T1/4", "test_data_9June/T2/2", "test_data_9June/T2/10", "test_data_9June/T2/14"]
+    
+    y = {}
+
+    for envdir in e_dir:
+        y[str(envdir)] = {}
+        print("found_path Analysing "+envdir)
+        file.write("Analysing "+envdir+"\n")
+        orig_G = nx.read_graphml(args.graphfile)
+        xpos, ypos, xpos1, ypos1, zpos1 = get_table_pose(envdir + "/conditions.txt")
+        table_pose[0,3] = xpos
+        table_pose[1,3] = ypos
+
+        table.SetTransform(table_pose)
+
+        box_pose[0,3] = xpos1
+        box_pose[1,3] = ypos1
+        box_pose[2,3] = zpos1
+        tall_white_box.SetTransform(box_pose)
+        K = ["5", "10", "15"]
+        n_samples = ["200", "300", "400", "500"]
+
+        # orig_G = remove_invalid_edges(orig_G, env, robot)
+        start = np.loadtxt(envdir + "/start_node.txt")
+        goal  = np.loadtxt(envdir + "/goal_node.txt")
+
+        found_path = 0
+        total_path_length = 0    
+        # for i in range(50):
+        #     src = str(int(start[i]))
+        #     gl  = str(int( goal[i]))
+        #     try:
+        #         path, path_length = find_shortest_paths(orig_G, src, gl, 'weight')
+        #         # print(path_length)
+        #         found_path += 1
+        #         total_path_length += path_length
+        #     except Exception as e:
+        #         continue
+        #         print("No path between "+src+" and "+gl) 
+
+        # print("halton, found_path: ",found_path, "apl: ",total_path_length/found_path)
+        # file.write("Dense Graph: no_path: "+str(found_path)+" APL: "+str(total_path_length/found_path)+"\n") 
+        z = 6
+        for k in K:
+            y[str(envdir)][str(k)] = {}
+            for no_samples in n_samples:
+                print("found_path output_samples_z"+str(z)+"_"+no_samples)
+                outputgraphfile = envdir + "/output_graph_uniform"+no_samples+"_k"+k+".graphml"
+                # outputgraphfile = envdir + "/output_graph_z"+str(z)+"_f_"+str(no_samples)+"_k"+str(k)+".graphml"
+                print("outputgraphfile = ",outputgraphfile)
+
+                G = nx.read_graphml(outputgraphfile)
+
+                G = remove_invalid_edges(G, env, robot)
+
+                found_path = 0
+                total_path_length = 0
+                for i in range(50):
+                    src = str(int(start[i]))
+                    gl  = str(int( goal[i]))
+                    try:
+                        path, path_length = find_shortest_paths(G, src, gl, 'weight')
+                        # print(path_length)
+                        found_path += 1
+                        total_path_length += path_length
+                    except Exception as e:
+                        continue
+                        print(e)
+                        print("No path between "+src+" and "+gl) 
+
+                if(found_path==0):
+                    found_path = 1        
+                print("envdir = ",envdir)    
+                print("k: ",k, " found_path: ",found_path, " apl",total_path_length/found_path)
+                file.write("k: "+str(k)+" paths_found = "+str(found_path)+" APL: "+str(total_path_length/found_path))
+
+                y[str(envdir)][str(k)][str(no_samples)] = [found_path, total_path_length/found_path]
+    print("Y = ",y)
+
 if __name__ == '__main__':
-            main()      
+            main1()      
             
 

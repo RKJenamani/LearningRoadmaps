@@ -18,7 +18,7 @@ table_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
        [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
           1.00000000e+00]])
 
-dish_washer_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
+bookcase_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
           7.83268307e-01],
        [  9.99994571e-01,  -5.95063642e-08,  -3.29499984e-03,
          -2.58088849e-03],
@@ -53,29 +53,33 @@ else:
 def get_table_pose(condnsfile):
     t = numpy.loadtxt(condnsfile)
     print("t = ", t)
-    return t[3], t[7], t[19], t[23], t[27]
+    return t[3], t[7], t[11]
 
 if __name__=='__main__':
 
     parser = argparse.ArgumentParser(description='Generate environments')
-    # parser.add_argument('--condnsfile',type=str,required=True)
+    parser.add_argument('--condnsfile',type=str,required=True)
     args = parser.parse_args()
     env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
     robot.right_arm.SetActive()
     # Load table from pr_ordata
-    # table_file = os.path.join(objects_path,'objects/table.kinbody.xml')
     # tall_white_box_file = os.path.join(objects_path,'objects/tall_white_box.kinbody.xml')
+    # table_file = os.path.join(objects_path,'objects/table.kinbody.xml')
     # table = env.ReadKinBodyXMLFile(table_file)
     # env.AddKinBody(table)
     # tall_white_box = env.ReadKinBodyXMLFile(tall_white_box_file)
     # env.AddKinBody(tall_white_box)
 
-    dish_washer_file = os.path.join(objects_path,'furniture/bookcase.kinbody.xml')
-    dish_washer = env.ReadKinBodyXMLFile(dish_washer_file)
-    env.AddKinBody(dish_washer)
+    bookcase_file = os.path.join(objects_path,'furniture/bookcase.kinbody.xml')
+    bookcase = env.ReadKinBodyXMLFile(bookcase_file)
+    env.AddKinBody(bookcase)
 
-    dish_washer_pose[0,3], dish_washer_pose[1,3], dish_washer_pose[2, 3] = 0.75, 0, 0.75
-    dish_washer.SetTransform(dish_washer_pose) 
+    bookcase_pose[0,3], bookcase_pose[1,3], bookcase_pose[2, 3] = get_table_pose(args.condnsfile)
+    # table.SetTransform(table_pose)
+    bookcase.SetTransform(bookcase_pose) 
+
+    Tz = openravepy.matrixFromAxisAngle([0,0,numpy.pi/2])
+    bookcase.SetTransform(numpy.dot(Tz,bookcase.GetTransform()))
 
     # xpos, ypos, xpos1, ypos1, zpos1 = get_table_pose(args.condnsfile)
     # table_pose[0,3] = xpos

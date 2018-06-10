@@ -14,8 +14,8 @@ def k_shortest_paths(G, source, target, weight=None):
     # print("target = ", target)
     # print("got dijkstra_path = ", nx.dijkstra_path(G, source, target, weight))
     # raw_input("Press Enter")
-    return [(nx.dijkstra_path(G, source, target, weight))]
-    # return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), k))
+    # return [(nx.dijkstra_path(G, source, target, weight))]
+    return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), k))
 
 def remove_invalid_edges(G1, binary_vec):
     to_remove = []

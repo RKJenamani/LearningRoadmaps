@@ -108,11 +108,11 @@ def classify_ee_pos(eepos, table_pose, box_pose):
     # else:
     #     return 0
 
-    if(eepos[2] > TABLE_ZH and eepos[2] < TABLE_ZH + 0.2):
+    if(eepos[2] > TABLE_ZH + 0.2 and eepos[2] < TABLE_ZH + 0.4):
         if( math.fabs(TABLE_X - eepos[0]) < TABLE_XW/2 + 0.1 ):
-            if(eepos[1]<box_pose[1,3]):
+            if(eepos[1]<box_pose[1,3] - 0.1):
                 return 1
-            else:
+            elif(eepos[1]>box_pose[1,3] + 0.1):
                 return 2 
     return 0               
 
@@ -168,13 +168,13 @@ def object_around_table(task_id, robot, env, G):
 
     XMIN = 0.738
     XMAX = 1.0
-    YMIN = -1.17
+    YMIN = -0.8
     YMAX = 0.74
 
-    b_XMIN = +0.9
-    b_XMAX = +1.0   
-    b_YMIN = -0.7
-    b_YMAX = +0.3
+    b_XMIN = +0.8
+    b_XMAX = +0.9   
+    b_YMIN = -0.5
+    b_YMAX = +0.0
     b_ZMIN = +0.8
     b_ZMAX = +1.2
 
@@ -233,10 +233,11 @@ def object_around_table(task_id, robot, env, G):
             print("no of start or goal posiitons is under limit")            
 
 def generate_data(task_id, robot, env, G):
-    if(task_id=="T1"):
+    if(task_id=="T2"):
         object_around_table(task_id, robot, env, G)                    
 
 if __name__=='__main__':
+    print("start main")
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--graphfile',type=str,required=True)
     args = parser.parse_args()
@@ -245,6 +246,7 @@ if __name__=='__main__':
     robot.right_arm.SetActive()
     
     G = nx.read_graphml(args.graphfile)
-
-    generate_data("T1", robot, env, G)    
+    print("pre generate_data")
+    generate_data("T2", robot, env, G)   
+    print("post generate_data") 
     nx.write_graphml(G, "graphs/weighted_graph.graphml")

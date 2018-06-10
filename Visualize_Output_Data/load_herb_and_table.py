@@ -80,4 +80,9 @@ if __name__=='__main__':
     box_pose[1,3] = ypos1
     box_pose[2,3] = zpos1
     tall_white_box.SetTransform(box_pose)
+    r = 0
+
+    conf = numpy.array([0.62132900000000002, -0.615896, -0.84775500000000004, 0.34049499999999999, -1.22523, 1.38107,r])
+    robot.SetActiveDOFValues(conf)
+
     x = raw_input("Press Enter")

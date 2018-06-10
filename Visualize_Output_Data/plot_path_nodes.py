@@ -72,6 +72,7 @@ def append_start_goal(eepos_start, eepos_goal, markerArray):
 def main():
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--graphfile',type=str,required=True)
+    parser.add_argument('--envdir',type=str,required=True)
     args = parser.parse_args()
     
     G = nx.read_graphml(args.graphfile)
@@ -84,10 +85,10 @@ def main():
 
     markerArray = MarkerArray()
 
-    p_file_addr = "temp_data/path_nodes.txt"
-    s_node_no_file = "temp_data/start_node.txt"
-    g_node_no_file = "temp_data/goal_node.txt"
-    pp_no = 0
+    p_file_addr = args.envdir + "/path_nodes.txt"
+    s_node_no_file = args.envdir + "/start_node.txt"
+    g_node_no_file = args.envdir + "/goal_node.txt"
+    pp_no = None
 
     eepositions = helper.get_eepositions(G, p_file_addr, pp_no)
     eepos_start = helper.get_eepositions(G, s_node_no_file, pp_no)[0]

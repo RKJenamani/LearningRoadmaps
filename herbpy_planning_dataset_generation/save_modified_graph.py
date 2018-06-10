@@ -20,7 +20,7 @@ def state_to_numpy(state):
     return np.array(val_list) 
 
 def save_modified_graph(G, env, robot):
-    file_addr = "graphs/modified_graph.graphml"
+    file_addr = "graphs/modified_graph_60000.graphml"
 
     i = 0
     for node in G.nodes():

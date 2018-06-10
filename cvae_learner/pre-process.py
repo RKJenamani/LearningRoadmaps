@@ -18,7 +18,9 @@ def write_one_row(curr_node):
 def process_it(G, directory):
     start = np.loadtxt(directory+"/start_node.txt")
     goal = np.loadtxt(directory+"/goal_node.txt")
-    cond = np.loadtxt(directory+"/conditions.txt")
+    # occ_grid = np.loadtxt(directory+"/occ_grid.txt")
+    conditions = np.loadtxt(directory+"/conditions.txt")   
+    # conditions = np.array([conditions[23]]) 
     # cond = cond.split(",")
     path_nodes = []
     i = 0
@@ -38,7 +40,7 @@ def process_it(G, directory):
                     curr_node = np.array([])
                     # print("Data = ",node_conf, s, g, cond)
                     print("\n")
-                    curr_node = np.concatenate((node_conf, s, g, cond))
+                    curr_node = np.concatenate((node_conf, s, g, conditions))
                     print("shape of curr_node = ", curr_node.shape)
                     write_one_row(curr_node)
 

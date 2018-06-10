@@ -9,7 +9,7 @@ from prpy import serialization
 import json
 import networkx as nx
 from itertools import islice
-from random import choice
+from random import choice, randint
 import copy
 
 EDGE_DISCRETIZATION = 7
@@ -96,9 +96,9 @@ def check_for_collisions(G, robot, env, env_no):
 # start and goal node have valid end effectors.
 # binary vectors of enumerated edges of the roadmap
 def write_one_dir(task_id, env_no,start_node, goal_node, condition_vectors, binary_vec):
-    dir_path = "data/"+task_id+"/"+str(env_no)
+    dir_path = "data_4June/"+task_id+"/"+str(env_no)
     try:
-        os.mkdir("data/"+task_id, 0755)
+        os.mkdir("data_4June/"+task_id, 0755)
     except:
         print(task_id,"Directory Exists")
     
@@ -110,10 +110,17 @@ def write_one_dir(task_id, env_no,start_node, goal_node, condition_vectors, bina
     print("binary_vec = ",binary_vec)
     start_node = numpy.array(start_node)
     goal_node = numpy.array(goal_node)
-    numpy.savetxt(dir_path+"/start_node.txt", start_node, delimiter=" ", fmt="%s")
-    numpy.savetxt(dir_path+"/goal_node.txt", goal_node, delimiter=" ", fmt="%s")
-    numpy.savetxt(dir_path+"/binary_vec.txt", binary_vec, delimiter=" ", fmt="%s")
-    numpy.savetxt(dir_path+"/conditions.txt", condition_vectors, delimiter=" ", fmt="%s") #here only table_pose
+
+    flag = 0
+    while(flag==0):
+        try:
+            numpy.savetxt(dir_path+"/start_node.txt", start_node, delimiter=" ", fmt="%s")
+            numpy.savetxt(dir_path+"/goal_node.txt", goal_node, delimiter=" ", fmt="%s")
+            numpy.savetxt(dir_path+"/binary_vec.txt", binary_vec, delimiter=" ", fmt="%s")
+            numpy.savetxt(dir_path+"/conditions.txt", condition_vectors, delimiter=" ", fmt="%s") #here only table_pose
+            flag = 1
+        except Exception as e:
+            print("Excetion: ",e)    
 
 def object_around_table(task_id, robot, env, G):
     pass
@@ -142,22 +149,30 @@ def object_around_bookcase(task_id, robot, env, G):
     yl = 0.75
     zl = 1.45
 
-    def get_valid_node(xpos, ypos, zpos):
+    def get_valid_node(xpos, ypos, zpos, flag):
         valid_node = 0
 
         while(valid_node==0):
+            # print("in get_valid_node while loop")
             random_node = choice(list(G.nodes()))
             config = state_to_numpy(G.node[random_node]['state'])
             robot.SetActiveDOFValues(config)
             if(env.CheckCollision(robot)==True):
+                # print("node in collision")
                 continue
             ee_trans = robot.right_arm.GetEndEffectorTransform()
             trans = ee_trans[0:3,3]
             eepos = trans.tolist()
-            if(math.fabs(eepos[0] - xpos) < xl/2 and math.fabs(eepos[1] - ypos) < yl/2  and math.fabs(eepos[2] - zpos) < zl/2):
-                valid_node = 1
-                return random_node
-
+            if(flag==0):
+                if(math.fabs(eepos[0] - xpos) < xl/2 + 0.1 and math.fabs(eepos[1] - ypos) < yl/2  and math.fabs(eepos[2] - zpos) < zl/2):
+                    valid_node = 1
+                    print("valid_node found!")
+                    return random_node
+            else:
+                if(math.fabs(eepos[0] - ypos) < xl/2 + 0.1 and math.fabs(eepos[1] - xpos) < yl/2  and math.fabs(eepos[2] - zpos) < zl/2):
+                    valid_node = 1
+                    print("valid_node found!")
+                    return random_node        
     # n environment setup => n sub directory inside task directory
     for env_no in range(20):
         print("env_no = ", env_no)
@@ -172,20 +187,34 @@ def object_around_bookcase(task_id, robot, env, G):
         bookcase_pose[2,3] = z
 
         bookcase.SetTransform(bookcase_pose)
+
+        p = randint(0,100)
+        flag = 0
+        if(p%2==0):
+            xpos = -xpos
+            bookcase_pose[0,3] = -bookcase_pose[0,3]
+            bookcase.SetTransform(bookcase_pose)
+            Tz = openravepy.matrixFromAxisAngle([0,0,numpy.pi/2])
+            bookcase.SetTransform(numpy.dot(Tz,bookcase.GetTransform()))
+            flag = 1
        
         cond = ""
         cond = numpy.array(bookcase_pose.ravel())
+        print("Creating Binary Vector..")
         binary_vec = check_for_collisions(G, robot, env, env_no)
+        print("Binary Vector created...")
         start = []
         goal  = []
         while(len(start)<50 or len(goal)<50):
             print("in while loop, start = ", len(start), " goal = ", len(goal))
-            random_node_1 = get_valid_node(xpos, ypos, zpos)
-            random_node_2 = get_valid_node(xpos, ypos, zpos)
+            random_node_1 = get_valid_node(xpos, ypos, zpos, flag)
+            random_node_2 = get_valid_node(xpos, ypos, zpos, flag)
             
             if( not is_trivial(G.node[random_node_1]['state'], G.node[random_node_2]['state'], env, robot) ):
                 start.append(random_node_1)
                 goal.append(random_node_2)
+                print("start_node = ",random_node_1)
+                print("goal_node = ", random_node_2)
 
         if(len(start) == 50 and len(goal) == 50):    
             print("write_one_dir")    
@@ -196,7 +225,7 @@ def object_around_bookcase(task_id, robot, env, G):
 def generate_data(task_id, robot, env, G):
     if(task_id=="T1"):
         object_around_table(task_id, robot, env, G) 
-    elif(task_id=="T2"):
+    elif(task_id=="T3"):
         object_around_bookcase(task_id, robot, env, G)                       
 
 if __name__=='__main__':
@@ -209,5 +238,5 @@ if __name__=='__main__':
     
     G = nx.read_graphml(args.graphfile)
 
-    generate_data("T2", robot, env, G)    
+    generate_data("T3", robot, env, G)    
     nx.write_graphml(G, "graphs/weighted_graph.graphml")

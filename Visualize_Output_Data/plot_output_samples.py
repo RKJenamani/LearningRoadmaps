@@ -165,13 +165,12 @@ def get_markers_expected_samples(G, env, robot, path_node_file_addr):
     return markerArray1
 
 def main():
-    env_no = "17"
-    print("Working on "+env_no)
     parser = argparse.ArgumentParser(description='Generate environments')
-    parser.add_argument('--condnsfile',type=str,required=True)
     parser.add_argument('--graphfile',type=str,required=True)
+    parser.add_argument('--envdir',type=str,required=True)
 
     args = parser.parse_args()
+    print("Working on " + args.envdir)
     G = nx.read_graphml(args.graphfile)
     
     env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
@@ -185,7 +184,7 @@ def main():
     tall_white_box = env.ReadKinBodyXMLFile(tall_white_box_file)
     env.AddKinBody(tall_white_box)
 
-    xpos, ypos, xpos1, ypos1, zpos1 = get_table_box_pose(args.condnsfile)
+    xpos, ypos, xpos1, ypos1, zpos1 = get_table_box_pose(args.envdir + "/conditions.txt")
     pp_no = 5
     table_pose[0,3] = xpos
     table_pose[1,3] = ypos
@@ -208,11 +207,11 @@ def main():
 
     markerArray = MarkerArray()
 
-    p_file_addr = "output_data_z4/output_samples_"+env_no+".txt"
+    p_file_addr = args.envdir + "/output_samples_6.txt"
 
     eepositions = get_eepositions_from_samples(env, robot, p_file_addr)
 
-    path_node_file_addr = "output_data_z4/expected_path_nodes_"+env_no+".txt"
+    path_node_file_addr = args.envdir + "/path_nodes.txt"
     
     markerArray1 = get_markers_expected_samples(G, env, robot, path_node_file_addr)
     

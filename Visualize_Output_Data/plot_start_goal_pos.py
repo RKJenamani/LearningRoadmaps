@@ -115,10 +115,11 @@ def main():
     
     G = nx.read_graphml(args.graphfile)
 
-    s_file_addr = args.envdir + "start_node.txt"
-    g_file_addr = args.envdir + "goal_node.txt"
+    s_file_addr = args.envdir + "/start_node.txt"
+    g_file_addr = args.envdir + "/goal_node.txt"
 
     s_eepositions = helper.get_eepositions(G, s_file_addr, None)
+    print("len(s_eepositions) = ", len(s_eepositions))
     g_eepositions = helper.get_eepositions(G, g_file_addr, None)
 
     count = 0
