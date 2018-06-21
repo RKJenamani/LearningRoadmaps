@@ -27,6 +27,22 @@ box_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
        [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
           1.00000000e+00]])
 
+def get_box_pose(file_addr):
+  b_pose = numpy.ones((4,4), dtype = float)
+  i = 0
+  with open(file_addr, 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+          values = line.split(",")
+          for j in range(4):
+            b_pose[i,j] = float(values[j])
+          i += 1
+  return b_pose
+
+def get_conf(file_addr):
+  conf = numpy.loadtxt(file_addr)
+  return list(conf)
+
 XMIN = 0.638
 XMAX = 1.2
 YMIN = -1.17
@@ -58,19 +74,18 @@ def get_table_pose(condnsfile):
 if __name__=='__main__':
 
     parser = argparse.ArgumentParser(description='Generate environments')
-    parser.add_argument('--condnsfile',type=str,required=True)
     args = parser.parse_args()
     env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
     robot.right_arm.SetActive()
     # Load table from pr_ordata
     table_file = os.path.join(objects_path,'objects/table.kinbody.xml')
-    tall_white_box_file = os.path.join(objects_path,'objects/tall_white_box.kinbody.xml')
+    tall_white_box_file = os.path.join(objects_path,'objects/stick.kinbody.xml')
     table = env.ReadKinBodyXMLFile(table_file)
     env.AddKinBody(table)
     tall_white_box = env.ReadKinBodyXMLFile(tall_white_box_file)
     env.AddKinBody(tall_white_box)
 
-    xpos, ypos, xpos1, ypos1, zpos1 = get_table_pose(args.condnsfile)
+    xpos, ypos, xpos1, ypos1, zpos1 = 1, 0, 1, 0, 1
     table_pose[0,3] = xpos
     table_pose[1,3] = ypos
 
@@ -82,7 +97,33 @@ if __name__=='__main__':
     tall_white_box.SetTransform(box_pose)
     r = 0
 
-    conf = numpy.array([0.62132900000000002, -0.615896, -0.84775500000000004, 0.34049499999999999, -1.22523, 1.38107,r])
-    robot.SetActiveDOFValues(conf)
+    conf = [2, -0.615896, -0.84775500000000004, 0.34049499999999999, -1.22523, 1.38107, 0]
+    while(True):
+      try:
+        conf = get_conf("herb_conf.txt")
+      except Exception as e:
+        print(e)  
+      robot.SetActiveDOFValues(conf)
+      ee_trans = robot.right_arm.GetEndEffectorTransform()
+      # print("ee_trans = ", ee_trans)
+      trans = ee_trans[0:3,3]
+      eepos = trans.tolist()
 
-    x = raw_input("Press Enter")
+      # box_pose = get_box_pose("box_pose.txt")
+      step_size = 0.1
+      stick_len = 0.4
+      prop = -0.5
+
+      push_dir = ee_trans[:3,2]
+      parr_dir = ee_trans[:3,1]
+      box_pose = ee_trans
+      box_pose[:3,3] += push_dir*step_size
+      box_pose[:3,3] += parr_dir*stick_len*prop
+      # box_pose[0,3], box_pose[1,3], box_pose[2,3] = eepos 
+
+      tall_white_box.SetTransform(box_pose)
+
+      print("stick_collis = ", env.CheckCollision(tall_white_box))
+      # print("box_transform = ", tall_white_box.GetTransform())
+
+      # r = float(raw_input("Enter Last Index Value"))

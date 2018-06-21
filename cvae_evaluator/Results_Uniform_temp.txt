@@ -1,0 +1,15 @@
+
+Analysing temp_data/T2/5
+
+k: 5 paths_found = 40 APL: 13.9899548573
+k: 5 paths_found = 33 APL: 12.6546010089
+k: 5 paths_found = 37 APL: 14.9210091483
+k: 5 paths_found = 49 APL: 13.5991361244
+k: 10 paths_found = 49 APL: 10.6407138213
+k: 10 paths_found = 50 APL: 11.2590268558
+k: 10 paths_found = 50 APL: 10.6925398412
+k: 10 paths_found = 50 APL: 10.3283834944
+k: 15 paths_found = 49 APL: 9.48800543644
+k: 15 paths_found = 50 APL: 9.54791508017
+k: 15 paths_found = 50 APL: 8.57517070242
+k: 15 paths_found = 50 APL: 9.04151024824

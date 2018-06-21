@@ -207,7 +207,7 @@ def main():
 
     markerArray = MarkerArray()
 
-    p_file_addr = args.envdir + "/output_samples_6.txt"
+    p_file_addr = args.envdir + "/output_samples_z6_n300.txt"
 
     eepositions = get_eepositions_from_samples(env, robot, p_file_addr)
 

@@ -12,7 +12,7 @@ import herbpy
 import os
 
 def calc_weight(config1, config2):
-    return float(np.sum((config2-config1)**2))
+    return math.sqrt(float(np.sum((config2-config1)**2)))
 
 def state_to_numpy(state):
     strlist = state.split()
@@ -20,7 +20,7 @@ def state_to_numpy(state):
     return np.array(val_list) 
 
 def save_modified_graph(G, env, robot):
-    file_addr = "graphs/modified_graph_60000.graphml"
+    file_addr = "graphs/modified_graph_30000.graphml"
 
     i = 0
     for node in G.nodes():

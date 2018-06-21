@@ -1,0 +1,85 @@
+
+Analysing test_data_11June/T1/4
+
+k: 5 paths_found = 33 APL: 10.4192189662
+k: 5 paths_found = 30 APL: 10.2752701284
+k: 5 paths_found = 30 APL: 11.2298894039
+k: 5 paths_found = 29 APL: 10.4761283345
+k: 10 paths_found = 33 APL: 8.19032109034
+k: 10 paths_found = 32 APL: 8.42419495729
+k: 10 paths_found = 31 APL: 8.11905466001
+k: 10 paths_found = 33 APL: 8.62284418873
+k: 15 paths_found = 34 APL: 7.54213037507
+k: 15 paths_found = 34 APL: 7.75881821048
+k: 15 paths_found = 31 APL: 7.41954981472
+k: 15 paths_found = 34 APL: 7.88947144418
+Analysing test_data_11June/T1/7
+
+k: 5 paths_found = 19 APL: 23.254263187
+k: 5 paths_found = 17 APL: 17.4957685166
+k: 5 paths_found = 17 APL: 15.5650318308
+k: 5 paths_found = 20 APL: 14.4692234828
+k: 10 paths_found = 32 APL: 13.9492852344
+k: 10 paths_found = 27 APL: 13.3327848815
+k: 10 paths_found = 23 APL: 11.1226705843
+k: 10 paths_found = 31 APL: 12.0860315465
+k: 15 paths_found = 32 APL: 11.689227852
+k: 15 paths_found = 30 APL: 10.9006890631
+k: 15 paths_found = 32 APL: 10.812312215
+k: 15 paths_found = 32 APL: 10.5206043711
+Analysing test_data_11June/T2/0
+
+k: 5 paths_found = 11 APL: 19.158023848
+k: 5 paths_found = 13 APL: 21.3234398211
+k: 5 paths_found = 12 APL: 19.540083647
+k: 5 paths_found = 17 APL: 20.9619896292
+k: 10 paths_found = 30 APL: 15.3096957113
+k: 10 paths_found = 19 APL: 16.1471902256
+k: 10 paths_found = 16 APL: 14.1863062127
+k: 10 paths_found = 27 APL: 16.7003111086
+k: 15 paths_found = 31 APL: 14.8024534749
+k: 15 paths_found = 20 APL: 14.4652593445
+k: 15 paths_found = 22 APL: 14.4497284028
+k: 15 paths_found = 33 APL: 14.4966934386
+Analysing test_data_11June/T2/4
+
+k: 5 paths_found = 29 APL: 12.3824346282
+k: 5 paths_found = 26 APL: 13.6343593147
+k: 5 paths_found = 30 APL: 13.5373014239
+k: 5 paths_found = 29 APL: 14.2092059778
+k: 10 paths_found = 45 APL: 10.4920709842
+k: 10 paths_found = 43 APL: 10.9403348466
+k: 10 paths_found = 44 APL: 11.7557895853
+k: 10 paths_found = 45 APL: 10.9464139742
+k: 15 paths_found = 48 APL: 10.025735033
+k: 15 paths_found = 47 APL: 10.1573049292
+k: 15 paths_found = 47 APL: 9.69690026172
+k: 15 paths_found = 47 APL: 10.2109746922
+Analysing test_data_11June/T2/7
+
+k: 5 paths_found = 17 APL: 11.2109720169
+k: 5 paths_found = 16 APL: 11.4829950599
+k: 5 paths_found = 20 APL: 12.1611649264
+k: 5 paths_found = 20 APL: 11.6775907131
+k: 10 paths_found = 26 APL: 10.4292298993
+k: 10 paths_found = 17 APL: 9.3868328044
+k: 10 paths_found = 22 APL: 8.84458836123
+k: 10 paths_found = 40 APL: 13.1440816645
+k: 15 paths_found = 35 APL: 11.3409956423
+k: 15 paths_found = 32 APL: 9.79683378657
+k: 15 paths_found = 22 APL: 8.25561296418
+k: 15 paths_found = 40 APL: 11.6807850202
+Analysing test_data_11June/T2/14
+
+k: 5 paths_found = 6 APL: 14.405619066
+k: 5 paths_found = 1 APL: 0
+k: 5 paths_found = 4 APL: 12.5483178338
+k: 5 paths_found = 7 APL: 15.6554420701
+k: 10 paths_found = 32 APL: 16.8843023825
+k: 10 paths_found = 30 APL: 10.8506997693
+k: 10 paths_found = 23 APL: 14.0610550118
+k: 10 paths_found = 20 APL: 11.9687433188
+k: 15 paths_found = 39 APL: 10.8854277463
+k: 15 paths_found = 46 APL: 10.5282839513
+k: 15 paths_found = 36 APL: 13.5470385841
+k: 15 paths_found = 35 APL: 11.1944767646

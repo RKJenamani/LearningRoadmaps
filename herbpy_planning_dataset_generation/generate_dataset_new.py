@@ -31,9 +31,9 @@ else:
     objects_path = objects_path[0]     
 
 def write_one_dir(task_id, env_no,start_node, goal_node, condition_vectors, binary_vec):
-    dir_path = "data_10June/"+task_id+"/"+str(env_no)
+    dir_path = "data_11June/"+task_id+"/"+str(env_no)
     try:
-        os.mkdir("data_10June/"+task_id, 0755)
+        os.mkdir("data_11June/"+task_id, 0755)
     except:
         print(task_id,"Directory Exists")
     
@@ -289,5 +289,5 @@ if __name__=='__main__':
     
     G = nx.read_graphml(args.graphfile)
     print("pre generate_data")
-    generate_data("T2", robot, env, G)   
+    generate_data("T1", robot, env, G)   
     print("post generate_data") 

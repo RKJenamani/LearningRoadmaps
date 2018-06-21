@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/vernwalrahul/projects/LearningRoadmaps/cvae_learner/checkpoints_z6_11June/model.ckpt"
+all_model_checkpoint_paths: "/home/vernwalrahul/projects/LearningRoadmaps/cvae_learner/checkpoints_z6_11June/model.ckpt"

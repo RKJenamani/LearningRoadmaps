@@ -78,6 +78,7 @@ def find_shortest_paths(G, source, target, weight=None):
         state = G.node[path_nodes[i]]['state']
         config2 = state_to_numpy(state)
         path_length += sqrt(np.sum((config2-config1)**2))
+        config1 = config2
     return path_nodes, path_length   
 
 def remove_invalid_edges(G, env, robot):
@@ -142,6 +143,7 @@ def main():
     start = np.loadtxt(args.envdir + "/start_node.txt")
     goal  = np.loadtxt(args.envdir + "/goal_node.txt")
 
+    path_length_learned_samples = []
     found_path = 0
     total_path_length = 0
     for i in range(50):
@@ -149,13 +151,15 @@ def main():
         gl  = str(int( goal[i]))
         try:
             path, path_length = find_shortest_paths(G, src, gl, 'weight')
+            path_length_learned_samples.append(path_length)
             print(path_length)
             found_path += 1
             total_path_length += path_length
         except Exception as e:
             print(e)
+            path_length_learned_samples.append(-1)
             print("No path between "+src+" and "+gl) 
-
+    np.savetxt(envdir+"/path_length.txt", np.array(path_length_learned_samples))        
     print("found_path = ", found_path)   
     if(not found_path == 0):
         print("Average path_length = ", total_path_length/found_path)
@@ -178,7 +182,7 @@ def main():
     print("orig Average path_length = ", total_path_length/found_path)        
 
 def main1():
-    file = open("Results_Uniform.txt", "w")
+    file = open("ResultsUniform_11JuneTestData.txt", "w")
     parser = argparse.ArgumentParser(description='Generate environments')
     # parser.add_argument('--outputgraphfile',type=str,required=True)
     parser.add_argument('--graphfile',type=str,required=True)
@@ -194,14 +198,15 @@ def main1():
     env.AddKinBody(tall_white_box)
     args = parser.parse_args()
 
-    e_dir = ["test_data_9June/T1/2", "test_data_9June/T1/4", "test_data_9June/T2/2", "test_data_9June/T2/10", "test_data_9June/T2/14"]
-    
+    e_dir = ["test_data_11June/T1/4", "test_data_11June/T1/7", "test_data_11June/T2/0", "test_data_11June/T2/4", "test_data_11June/T2/7", "test_data_11June/T2/14"]
+    # e_dir = ["temp_data/T2/5"]
+
     y = {}
 
     for envdir in e_dir:
         y[str(envdir)] = {}
         print("found_path Analysing "+envdir)
-        file.write("Analysing "+envdir+"\n")
+        file.write("\nAnalysing "+envdir+"\n")
         orig_G = nx.read_graphml(args.graphfile)
         xpos, ypos, xpos1, ypos1, zpos1 = get_table_pose(envdir + "/conditions.txt")
         table_pose[0,3] = xpos
@@ -237,12 +242,15 @@ def main1():
         # print("halton, found_path: ",found_path, "apl: ",total_path_length/found_path)
         # file.write("Dense Graph: no_path: "+str(found_path)+" APL: "+str(total_path_length/found_path)+"\n") 
         z = 6
+        path_length_learned_samples = {}
         for k in K:
             y[str(envdir)][str(k)] = {}
+            path_length_learned_samples[str(k)] = {}
             for no_samples in n_samples:
+                path_length_learned_samples[str(k)][str(no_samples)] = []
                 print("found_path output_samples_z"+str(z)+"_"+no_samples)
-                outputgraphfile = envdir + "/output_graph_uniform"+no_samples+"_k"+k+".graphml"
-                # outputgraphfile = envdir + "/output_graph_z"+str(z)+"_f_"+str(no_samples)+"_k"+str(k)+".graphml"
+                # outputgraphfile = envdir + "/output_graph_uniform"+no_samples+"_k"+k+".graphml"
+                outputgraphfile = envdir + "/output_graph_z"+str(z)+"_n"+str(no_samples)+"_k"+str(k)+".graphml"
                 print("outputgraphfile = ",outputgraphfile)
 
                 G = nx.read_graphml(outputgraphfile)
@@ -257,9 +265,11 @@ def main1():
                     try:
                         path, path_length = find_shortest_paths(G, src, gl, 'weight')
                         # print(path_length)
+                        path_length_learned_samples[str(k)][str(no_samples)].append(path_length)
                         found_path += 1
                         total_path_length += path_length
                     except Exception as e:
+                        path_length_learned_samples[str(k)][str(no_samples)].append(-1)
                         continue
                         print(e)
                         print("No path between "+src+" and "+gl) 
@@ -268,7 +278,10 @@ def main1():
                     found_path = 1        
                 print("envdir = ",envdir)    
                 print("k: ",k, " found_path: ",found_path, " apl",total_path_length/found_path)
-                file.write("k: "+str(k)+" paths_found = "+str(found_path)+" APL: "+str(total_path_length/found_path))
+                print("path_length_learned_samples = ",path_length_learned_samples[str(k)][str(no_samples)])
+                file.write("\nk: "+str(k)+" paths_found = "+str(found_path)+" APL: "+str(total_path_length/found_path))
+                assert len(path_length_learned_samples[str(k)][str(no_samples)])==50, "no of paths mismatch, here = "+str(len(path_length_learned_samples[str(k)][str(no_samples)]))
+                np.savetxt(envdir+"/r_path_length_k"+str(k)+"_n"+str(no_samples)+".txt", np.array(path_length_learned_samples[str(k)][str(no_samples)]))
 
                 y[str(envdir)][str(k)][str(no_samples)] = [found_path, total_path_length/found_path]
     print("Y = ",y)
