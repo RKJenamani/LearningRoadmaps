@@ -14,8 +14,8 @@ def k_shortest_paths(G, source, target, weight=None):
     # print("target = ", target)
     # print("got dijkstra_path = ", nx.dijkstra_path(G, source, target, weight))
     # raw_input("Press Enter")
-    # return [(nx.dijkstra_path(G, source, target, weight))]
-    return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), k))
+    return [(nx.dijkstra_path(G, source, target, 'weight'))]
+    # return list(islice(nx.shortest_simple_paths(G, source, target, weight=weight), k))
 
 def remove_invalid_edges(G1, binary_vec):
     to_remove = []
@@ -33,9 +33,12 @@ def remove_invalid_edges(G1, binary_vec):
             to_remove.append((u, v))
 
     for r in to_remove:
-        G1.remove_edge(r[0], r[1]) 
+        try:
+            G1.remove_edge(r[0], r[1]) 
+        except:
+            pass
         # print("removing edge = ", r[0], r[1])       
-    return G1        
+    return G1
 
 def write_to_file(directory, all_paths):
     # print(all_paths)
@@ -82,7 +85,7 @@ def list_all_dir(data_dir):
         env_dirs = os.listdir(data_dir+"/"+task_dir)
         for env_dir in env_dirs:
             list_dir.append(data_dir +"/"+ task_dir +"/"+ env_dir)
-    return list_dir        
+    return list_dir
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate environments')

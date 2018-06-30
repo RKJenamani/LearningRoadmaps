@@ -1,12 +1,12 @@
-herbpy_planning_dataset_generation/data/
+herbpy_planning_dataset_generation/data_21June/
 dataset_processing/graphs/
-dataset_processing/data/
-cvae_learner/data/
+dataset_processing/data_21June/
+cvae_learner/checkpoints*/
 cvae_learner/graphs/
 cvae_evaluator/data/
 cvae_evaluator/graphs/
 cvae_evaluator/output_data/
 cvae_evaluator/output_data_z4/
-cvae_learner/output_data_z4/
-Visualize_Output_Data/data/
+cvae_learner/data_21June/
+Visualize_Output_Data/data_21June/
 *.pyc

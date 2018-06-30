@@ -9,7 +9,7 @@ from prpy import serialization
 import json
 import networkx as nx
 from itertools import islice
-from random import choice
+import random
 import copy
 import helper
 
@@ -28,12 +28,12 @@ if len(objects_path) == 0:
     sys.exit()
 else:
     print objects_path # for me this is '/home/USERNAME/catkin_workspaces/herb_ws/src/pr-ordata/data/objects'
-    objects_path = objects_path[0]     
+    objects_path = objects_path[0]
 
 def write_one_dir(task_id, env_no,start_node, goal_node, condition_vectors, binary_vec):
-    dir_path = "data_11June/"+task_id+"/"+str(env_no)
+    dir_path = "data_21June/"+task_id+"/"+str(env_no)
     try:
-        os.mkdir("data_11June/"+task_id, 0755)
+        os.mkdir("data_21June/"+task_id, 0755)
     except:
         print(task_id,"Directory Exists")
     
@@ -79,42 +79,64 @@ def table_box_below_above(task_id, robot, env, G):
     table_file = os.path.join(objects_path,'objects/table.kinbody.xml')
     table = env.ReadKinBodyXMLFile(table_file)
     env.AddKinBody(table)
-    tall_box_file = os.path.join(objects_path,'objects/tall_white_box.kinbody.xml')
-    tall_white_box = env.ReadKinBodyXMLFile(tall_box_file)
-    env.AddKinBody(tall_white_box)
+
+    box_file = os.path.join(objects_path,'objects/tall_white_box.kinbody.xml')
+    box = env.ReadKinBodyXMLFile(box_file)
+    env.AddKinBody(box)    
+
+    stick_file = os.path.join(objects_path,'objects/stick.kinbody.xml')
+    stick = env.ReadKinBodyXMLFile(stick_file)
+    env.AddKinBody(stick)
 
     table_pose[0,3], table_pose[1,3], table_pose[2,3] = 0.8, 0, 0
     box_pose[0,3], box_pose[2,3] = 0.8, 1.0
 
-    b_xmin, b_xmax = -1.0, 1.0
-
     env_no = 0
+    shallow_G = nx.read_graphml("graphs/halton8D3000_0.graphml")
+
     for i in range(0,21):
         if(i%2==0):
           continue
-        ypos = b_xmin + (b_xmax-b_xmin)/20.0*i
-        box_pose[1,3] = ypos
+        print(" debug: env_no = ",env_no)
+        table_pose[1,3] = -0.5 + random.random()
+        box_pose[1,3] = -0.3 + random.random()/3
 
         table.SetTransform(table_pose)
-        tall_white_box.SetTransform(box_pose)
+        box.SetTransform(box_pose)
+        # stick.SetTransform(stick_pose)
 
         cond = numpy.concatenate((numpy.array(table_pose.ravel()), numpy.array(box_pose.ravel())))
+        
         G1 = G.copy()
-        binary_vec, G1 = helper.get_binary_vector(G, G1, robot, env)
+        shallow_G1 = shallow_G.copy()
+
+        print(" debug: generating binary_vec")
+        binary_vec = [1]
+        binary_vec, G1 = helper.get_binary_vector(G, G1, robot, stick, env)
+        b_v, shallow_G1 = helper.get_binary_vector(shallow_G, shallow_G1, robot, stick, env)
+        print(" debug: got binary_vec")
+
         start = []
         goal = []
 
         s_temp, g_temp = None, None
         while(len(start)<50 or len(goal)<50):
-            print("in while loop, start = ", len(start), " goal = ", len(goal))
-            random_node, status = helper.get_valid_node(task_id, G, robot, env, table_pose, box_pose)
+            print(" debug: in while loop, start = ", len(start), " goal = ", len(goal))
+            random_node, status = helper.get_valid_node(task_id, G, robot, stick, env, table_pose, box_pose)
             
             if(status=="s" and s_temp==None):
                 s_temp = random_node
             elif(status=="g" and g_temp==None):
                 g_temp = random_node
 
+
             if(not (s_temp==None or g_temp==None)):
+              print(" debug: checking if shallow_fails")  
+              if(not helper.shallow_fails(shallow_G1, G.node[s_temp]['state'], G.node[g_temp]['state'], env, robot, stick)):
+                print(" debug: shallow_passed")
+                continue
+
+              print(" debug: shallow_fails!! :D ")  
               if(path_exists(G1, s_temp, g_temp)):
                 start.append(s_temp)
                 goal.append(g_temp)
@@ -128,6 +150,32 @@ def table_box_below_above(task_id, robot, env, G):
             print("no of start or goal posiitons is under limit")
 
         env_no += 1  
+
+def list_all_dir(data_dir):
+    task_dirs = os.listdir(data_dir)
+
+    list_dir = []
+    for task_dir in task_dirs:
+        env_dirs = os.listdir(data_dir+"/"+task_dir)
+        for env_dir in env_dirs:
+            list_dir.append(data_dir +"/"+ task_dir +"/"+ env_dir)
+    return list_dir
+
+def get_parameters(directories):
+  binary_vecs = []
+  table_posns = []
+  box_posns = []
+
+  for directory in directories:
+    binary_vec = numpy.loadtxt(directory+"/binary_vec.txt")
+    binary_vecs.append(binary_vec)
+    cond = numpy.loadtxt(directory+"/conditions.txt")
+    table_pose = cond[:16].reshape(4,4)
+    box_pose = cond[16:].reshape(4,4)
+    table_posns.append(table_pose)
+    box_posns.append(box_pose)
+
+  return binary_vecs, table_posns, box_posns
 
 def table_box_left_right(task_id, robot, env, G):
     table_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
@@ -151,9 +199,13 @@ def table_box_left_right(task_id, robot, env, G):
     table_file = os.path.join(objects_path,'objects/table.kinbody.xml')
     table = env.ReadKinBodyXMLFile(table_file)
     env.AddKinBody(table)
-    tall_box_file = os.path.join(objects_path,'objects/tall_white_box.kinbody.xml')
-    tall_white_box = env.ReadKinBodyXMLFile(tall_box_file)
-    env.AddKinBody(tall_white_box)
+    box_file = os.path.join(objects_path,'objects/tall_white_box.kinbody.xml')
+    box = env.ReadKinBodyXMLFile(box_file)
+    env.AddKinBody(box)
+
+    stick_file = os.path.join(objects_path,'objects/stick.kinbody.xml')
+    stick = env.ReadKinBodyXMLFile(stick_file)
+    env.AddKinBody(stick)
 
     table_pose[0,3], table_pose[1,3], table_pose[2,3] = 0.8, 0, 0
     box_pose[0,3], box_pose[2,3] = 0.8, 1.0
@@ -163,51 +215,71 @@ def table_box_left_right(task_id, robot, env, G):
     table_yp = [0.1, -0.1]
 
     env_no = 0
-    for table_y in table_yp:
-        table_pose[1,3] = table_y
-        for i in range(0,9):
+    shallow_G = nx.read_graphml("graphs/halton8D3000_0.graphml")
+
+    # directories = list_all_dir(data_dir)
+
+    # binary_vecs, table_posns, box_posns = get_parameters(directories)
+
+
+    
+    for i in range(len(binary_vecs)):
+        table_pose[1,3] = -0.5 + random.random()
+        box_pose[1,3] = -0.3 + random.random()/3
+
+        table.SetTransform(table_pose)
+        box.SetTransform(box_pose)
+        # stick.SetTransform(stick_pose)
+
+        print("wokring on ", env_no)  
+
+        cond = numpy.concatenate((numpy.array(table_pose.ravel()), numpy.array(box_pose.ravel())))
+        G1 = G.copy()
+        shallow_G1 = shallow_G.copy()
+
+        # G1 = helper.remove_invalid_edges(G1, binary_vec)
+        print("Generating binary_vec")
+        # binary_vec = []
+        binary_vec, G1 = helper.get_binary_vector(G, G1, robot, stick, env)
+        b_v, shallow_G1 = helper.get_binary_vector(shallow_G, shallow_G1, robot, stick, env)
+        print("Generated binary_vec")
+
+        s_temp, g_temp = None, None
+        start = []
+        goal = []
+
+        while(len(start)<50 or len(goal)<50):
+            print("in while loop, start = ", len(start), " goal = ", len(goal))
+            random_node, status = helper.get_valid_node(task_id, G, robot, stick, env, table_pose, box_pose)
             
-            print("wokring on ", env_no)  
-            ypos = b_xmin + (b_xmax-b_xmin)/8.0*i
-            box_pose[1,3] = ypos
-
-            table.SetTransform(table_pose)
-            tall_white_box.SetTransform(box_pose)
-
-            cond = numpy.concatenate((numpy.array(table_pose.ravel()), numpy.array(box_pose.ravel())))
-            G1 = G.copy()
-            binary_vec, G1 = helper.get_binary_vector(G, G1, robot, env)
-            s_temp, g_temp = None, None
-            start = []
-            goal = []
-
-            while(len(start)<50 or len(goal)<50):
-                print("in while loop, start = ", len(start), " goal = ", len(goal))
-                random_node, status = helper.get_valid_node(task_id, G, robot, env, table_pose, box_pose)
-                
-                if(status=="s" and s_temp==None):
-                    s_temp = random_node
-                elif(status=="g" and g_temp==None):
-                    g_temp = random_node  
-                if(not (s_temp==None or g_temp==None)):
-                  if(path_exists(G1, s_temp, g_temp)):
-                    if(len(start)<25):
-                      start.append(s_temp)
-                      goal.append(g_temp)
-                    else:
-                      goal.append(s_temp)
-                      start.append(g_temp)  
-                  s_temp = None
-                  g_temp = None     
+            if(status=="s" and s_temp==None):
+                s_temp = random_node
+            elif(status=="g" and g_temp==None):
+                g_temp = random_node  
+            
+            if(not (s_temp==None or g_temp==None)):
+              print(" debug: checking if shallow_fails")  
+              if(not helper.shallow_fails(shallow_G1, G.node[s_temp]['state'], G.node[g_temp]['state'], env, robot, stick)):
+                print(" debug: shallow_passed")
+                continue
+              if(path_exists(G1, s_temp, g_temp)):
+                if(len(start)<25):
+                  start.append(s_temp)
+                  goal.append(g_temp)
+                else:
+                  goal.append(s_temp)
+                  start.append(g_temp)  
+              s_temp = None
+              g_temp = None
 
 
-            if(len(start) == 50 and len(goal) == 50):    
-                print("write_one_dir")    
-                write_one_dir(task_id, env_no, start, goal, cond, binary_vec)
-            else:
-                print("no of start or goal posiitons is under limit")
+        if(len(start) == 50 and len(goal) == 50):    
+            print("write_one_dir")    
+            write_one_dir(task_id, env_no, start, goal, cond, binary_vec)
+        else:
+            print("no of start or goal posiitons is under limit")
 
-            env_no += 1
+        env_no += 1
 
 def bookcase_front(task_id, robot, env, G):
     bookcase_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
@@ -280,14 +352,34 @@ def generate_data(task_id, robot, env, G):
 
 if __name__=='__main__':
     print("start main")
+    
+    table_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
+          7.83268307e-01],
+       [  9.99994571e-01,  -5.95063642e-08,  -3.29499984e-03,
+         -2.58088849e-03],
+       [  5.97027617e-08,   1.00000000e+00,   5.95063642e-08,
+          1.19378528e-07],
+       [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
+          1.00000000e+00]])
+
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--graphfile',type=str,required=True)
+    # parser.add_argument('--datadir',type=str,required=True)
     args = parser.parse_args()
 
     env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
     robot.right_arm.SetActive()
     
     G = nx.read_graphml(args.graphfile)
+
+    flat_base_file = os.path.join(objects_path,'objects/flat_base.kinbody.xml')
+    flat_base = env.ReadKinBodyXMLFile(flat_base_file)
+    env.AddKinBody(flat_base)
+    base_pose = table_pose.copy()
+    base_pose[:3,3] = 0,0,-0.04
+    flat_base.SetTransform(base_pose)
+
     print("pre generate_data")
+    # generate_data("T2", args.datadir, robot, env, G)   
     generate_data("T1", robot, env, G)   
     print("post generate_data") 
