@@ -108,7 +108,7 @@ if __name__ == "__main__":
     upper = numpy.ones(space_dim)
 
     # Settings
-    halton_points = 250
+    halton_points = 400
     disc_radius = 4*halton_points**(-0.25)
 
     for i in range(1):

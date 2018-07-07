@@ -85,7 +85,7 @@ def main():
 
     markerArray = MarkerArray()
 
-    p_file_addr = args.envdir + "/path_nodes.txt"
+    p_file_addr = args.envdir + "/RF_path_nodes.txt"
     s_node_no_file = args.envdir + "/start_node.txt"
     g_node_no_file = args.envdir + "/goal_node.txt"
     pp_no = 5

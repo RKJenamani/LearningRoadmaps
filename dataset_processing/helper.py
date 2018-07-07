@@ -14,7 +14,7 @@ ry1 = [0, 7]
 ry2 = [None, 9]
 EDGE_DISCRETIZATION_T = 40
 EDGE_DISCRETIZATION = 11 
-THRESHOLD = 2.0
+THRESHOLD = 4.0
 
 def write_to_file(directory, all_paths):
     with open(directory + "/path_nodes.txt", 'a') as file:
