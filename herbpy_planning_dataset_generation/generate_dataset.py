@@ -30,10 +30,10 @@ else:
     print objects_path # for me this is '/home/USERNAME/catkin_workspaces/herb_ws/src/pr-ordata/data/objects'
     objects_path = objects_path[0]
 
-def write_one_dir(task_id, env_no,start_node, goal_node, condition_vectors, binary_vec):
-    dir_path = "data_21June/"+task_id+"/"+str(env_no)
+def write_one_dir(task_id, datadir, env_no,start_node, goal_node, condition_vectors, binary_vec):
+    dir_path = datadir+"/"+task_id+"/"+str(env_no)
     try:
-        os.mkdir("data_21June/"+task_id, 0755)
+        os.mkdir(datadir+"/"+task_id, 0755)
     except:
         print(task_id,"Directory Exists")
     
@@ -57,7 +57,7 @@ def path_exists(G1, source, target):
     except Exception as e:
       return False  
 
-def table_box_below_above(task_id, robot, env, G):
+def table_box_below_above(task_id, datadir, robot, env, G):
     table_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
           7.83268307e-01],
        [  9.99994571e-01,  -5.95063642e-08,  -3.29499984e-03,
@@ -145,7 +145,7 @@ def table_box_below_above(task_id, robot, env, G):
 
         if(len(start) == 50 and len(goal) == 50):    
             print("write_one_dir")    
-            write_one_dir(task_id, env_no, start, goal, cond, binary_vec)
+            write_one_dir(task_id, datadir, env_no, start, goal, cond, binary_vec)
         else:
             print("no of start or goal posiitons is under limit")
 
@@ -177,7 +177,7 @@ def get_parameters(directories):
 
   return binary_vecs, table_posns, box_posns
 
-def table_box_left_right(task_id, robot, env, G):
+def table_box_left_right(task_id, datadir, robot, env, G):
     table_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
           7.83268307e-01],
        [  9.99994571e-01,  -5.95063642e-08,  -3.29499984e-03,
@@ -220,8 +220,6 @@ def table_box_left_right(task_id, robot, env, G):
     # directories = list_all_dir(data_dir)
 
     # binary_vecs, table_posns, box_posns = get_parameters(directories)
-
-
     
     for i in range(len(binary_vecs)):
         table_pose[1,3] = -0.5 + random.random()
@@ -275,13 +273,13 @@ def table_box_left_right(task_id, robot, env, G):
 
         if(len(start) == 50 and len(goal) == 50):    
             print("write_one_dir")    
-            write_one_dir(task_id, env_no, start, goal, cond, binary_vec)
+            write_one_dir(task_id, datadir, env_no, start, goal, cond, binary_vec)
         else:
             print("no of start or goal posiitons is under limit")
 
         env_no += 1
 
-def bookcase_front(task_id, robot, env, G):
+def bookcase_front(task_id, datadir, robot, env, G):
     bookcase_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
           7.83268307e-01],
        [  9.99994571e-01,  -5.95063642e-08,  -3.29499984e-03,
@@ -340,17 +338,22 @@ def bookcase_front(task_id, robot, env, G):
 
 
 
-def generate_data(task_id, robot, env, G):
+def generate_data(task_id, datadir, robot, env, G):
     if(task_id=="T1"):
-        table_box_below_above(task_id, robot, env, G)  
+        table_box_below_above(task_id, datadir, robot, env, G)  
     elif(task_id=="T2"):
-        table_box_left_right(task_id, robot, env, G)
-    elif(task_id=="T3"):
-        bookcase_front(task_id, robot, env, G)
-    elif(task_id=="T4"):
-        bookcase_table(task_id, robot, env, G)          #bookcase on right, table in front                    
+        table_box_left_right(task_id, datadir, robot, env, G)
+    else:
+        print("InValid Task ID, HELP:")
+        print("T1 : Table_Box Problem, moving stick below to above the table")
+        print("T2 : Table_Box Problem, moving stick across the block")
+        return 
+    # elif(task_id=="T3"):
+    #     bookcase_front(task_id, robot, env, G)
+    # elif(task_id=="T4"):
+    #     bookcase_table(task_id, robot, env, G)          #bookcase on right, table in front                    
 
-if __name__=='__main__':
+def main():
     print("start main")
     
     table_pose = numpy.array([[  3.29499984e-03,  -5.97027617e-08,   9.99994571e-01,
@@ -364,8 +367,14 @@ if __name__=='__main__':
 
     parser = argparse.ArgumentParser(description='Generate environments')
     parser.add_argument('--graphfile',type=str,required=True)
+    parser.add_argument('--datadir',type=str,required=True)
+    parser.add_argument('--taskid',type=str,required=True)
     # parser.add_argument('--datadir',type=str,required=True)
     args = parser.parse_args()
+
+    args.datadir = args.datadir.strip('/')
+    if(not os.path.isdir(args.datadir)):
+      raise Exception(" Datadir Not Found!! args : ", args.datadir)
 
     env, robot = herbpy.initialize(sim=True, attach_viewer='interactivemarker')
     robot.right_arm.SetActive()
@@ -380,6 +389,10 @@ if __name__=='__main__':
     flat_base.SetTransform(base_pose)
 
     print("pre generate_data")
-    # generate_data("T2", args.datadir, robot, env, G)   
-    generate_data("T1", robot, env, G)   
-    print("post generate_data") 
+    # generate_data("T2", args.datadir, robot, env, G) 
+      
+    generate_data(args.taskid, args.datadir, robot, env, G)   
+    # print("post generate_data") 
+
+if __name__ == '__main__':
+  main()

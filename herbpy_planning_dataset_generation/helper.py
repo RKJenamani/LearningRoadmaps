@@ -56,7 +56,7 @@ def connect_knn_for_one_node(G, K, node, env, robot, stick):
     state = G.node[node]['state']
     conf = state_to_numpy(state)
     G1 = G.copy()
-    THRESHOLD = 0.3
+    THRESHOLD = 0.254
 
     for k in range(K):
         w = 1000000
@@ -70,7 +70,7 @@ def connect_knn_for_one_node(G, K, node, env, robot, stick):
                 w = calc_weight(conf, conf1)
                 sn = node1
         if(w<THRESHOLD):
-            if(collision_free(G, node, sn, env, robot, stick)):
+            if(collision_free(G, env, robot, stick, node, sn)):
                 G.add_edge(node, sn)
                 G[node][sn]['weight'] = w
             G1.remove_node(sn)
